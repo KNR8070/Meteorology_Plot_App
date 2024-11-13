@@ -53,25 +53,18 @@ def select_box(lat,lon):
 #%% [markdown] 
 ## Wind Rose Plot
 def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
-    # Ensure speed and direction are 1D arrays for the wind rose plot
-    #speed_wr = np.array(speed_pwr)
-    #direction_wr = np.array(direction_pwr)
-    # if plt.fignum_exists(fig):
-    #     fig=fig
-    # else:
     fig_ws = plt.figure(figsize=(4, 4))
     ax = WindroseAxes.from_ax()
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
     ax.set_legend()
     st.pyplot()  
-
 #%% [markdown] 
 ## Spatial Wind Vector Plot
 def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     # Select data within specified lat/lon box   
     speed_mean = np.sqrt(ds_u**2 + ds_v**2)
-    #%% Dynamic plot size
+    ### Dynamic plot size
     lat_range = lat_max-lat_min
     lon_range = lon_max-lon_min
     
@@ -93,8 +86,6 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
                            subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.COASTLINE)
-    # ax.add_feature(cfeature.BORDERS)
-    
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
@@ -116,16 +107,10 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     else:
         qk = ax.quiverkey(Q, 0.7, 0.9, 5, r'$5 \frac{m}{s}$', labelpos='E',
                    coordinates='figure')
-    # if lon_max>180:
-    #     ax.set_xticks(np.linspace(lon_min-180,lon_max-180,num=5,endpoint=True))
-    # else:
     ax.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    # if climatology:
-    #     ax.set_title('Plotted for time: Climatology (1991 to 2021)')
-    # else:
     ax.set_title('Month:'+calendar.month_name[time_s][:3]+'  Level:'+str(ds_u.level.values)+' '+ds_u.level.GRIB_name)
     st.pyplot(fig)
 #%% [markdown] 
@@ -160,43 +145,23 @@ def plot_spatial(temp_subset, lat_min, lat_max, lon_min, lon_max):
                     ax3[i_row,i_col].set_yticks(np.linspace(lat_min,lat_max,num=2,endpoint=True))
                 else:                    
                     ax3[i_row,i_col].set_yticks(np.linspace(lat_min,lat_max,num=2,endpoint=True))
-          
-    # ax[0,0].set_yticks(np.linspace(lat_min,lat_max,num=1,endpoint=True))
-    # ax[1,0].set_yticks(np.linspace(lat_min,lat_max,num=1,endpoint=True))
-    # ax[1,0].set_xticks([lon_min,lon_max])
-    # ax[0,-1].set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
     
     fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", shrink=0.75)
     st.pyplot(fig)
 #%% [markdown]
 ##  Spatial plot test
 def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
-    # Select data within specified lat/lon box    
-    # if lon_max>180:
-    #     lon_max2 = lon_max
-    #     lon_max2 = lon_max-180
     plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = False
     fig, ax3 = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})#,
-                           #sharex=True,sharey=True)#,figsize=(12,4))
-    # if lon_max>180:
-    #     ax3.set_extent([lon_min-(lon_max-180), 180, lat_min, lat_max], crs=ccrs.PlateCarree())
-    # else:
+
     ax3.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
     ax3.add_feature(cfeature.COASTLINE)
-    # ax.add_feature(cfeature.BORDERS)
     
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(var_subset.lon, var_subset.lat)
     
     if var_subset.var_desc=='Air temperature':
         plot_data = np.squeeze(var_subset.isel(time=time_s))-273.15
-        # if lon_max>180:
-        #     # lons_new = np.hstack((temp_subset.lon[temp_subset.lon>180],lon
-        #     plot_data2 = np.hstack([plot_data[:,plot_data.lon.values>180],plot_data[:,~(plot_data.lon.values>180)]])
-        #     lons2 = np.hstack([lons[:,plot_data.lon.values>180],lons[:,~(plot_data.lon.values>180)]])
-            
-        #     s_plot = ax3.contourf(lons2, lats,plot_data2,cmap='viridis', extend='both')
-        # else:
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", shrink=0.75)
         
@@ -212,19 +177,9 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     ax3.set_title(calendar.month_name[time_s][:3])
     ax3.set_xlabel('Longitude')
     ax3.set_ylabel('Latitude')
-    # if lon_max>180:
-    #     ax3.set_xticks(np.linspace(lon_min-(lon_max-180),180,num=5,endpoint=True))
-    #     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-    # else:
+
     ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-          
-    # ax[0,0].set_yticks(np.linspace(lat_min,lat_max,num=1,endpoint=True))
-    # ax[1,0].set_yticks(np.linspace(lat_min,lat_max,num=1,endpoint=True))
-    # ax[1,0].set_xticks([lon_min,lon_max])
-    # ax[0,-1].set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-    
-    
     st.pyplot(fig)
     
 #%% [markdown] 
