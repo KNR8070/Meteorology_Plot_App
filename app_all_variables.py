@@ -267,9 +267,9 @@ def plot_time_series2(var):
 def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
     speed_loc,_ = calculate_wind(u_var,v_var)
     fig, ax1 = plt.subplots(figsize=(6,12))
-    ax1.plot(speed_loc[:,mon],u_var.level.values)
-    ax1.quiver(u_var.level.values[:,mon],u_var.level.values[:,mon],
-               u_var.values[:,mon],v_var.values[:,mon])
+    ax1.plot(speed_loc[mon,:],u_var.level.values)
+    ax1.quiver(u_var.level.values,u_var.level.values,
+               u_var.values[mon,:],v_var.values[mon,:])
     st.pyplot(fig)
 #%% [markdown]
 # Function to covert 0 360 to -180 to 180
