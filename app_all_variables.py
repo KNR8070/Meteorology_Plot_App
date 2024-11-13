@@ -80,8 +80,8 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     
     if x_ratio>y_ratio:
         ratio_xy = np.round(x_ratio/y_ratio)
-        x_size = np.round(5*ratio_xy)
-        y_size = np.round(5)
+        x_size = np.round(5)
+        y_size = np.round(7)
     elif x_ratio==y_ratio:
         x_size = np.round(7)
         y_size = np.round(5)
