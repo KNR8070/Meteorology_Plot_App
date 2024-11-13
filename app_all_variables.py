@@ -230,7 +230,8 @@ def plot_time_series(speed,direction):
                   ' and Longitude = '+str(speed_loc.lon.values)+
                   '  Level:'+str(speed.level.values)+
                   ' '+speed.level.GRIB_name)
-    ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],fontsize=6,transform=ax1.transAxes)
+    ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
+             fontsize=6,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 # Function to plot time series of variables
@@ -258,7 +259,8 @@ def plot_time_series2(var):
     ax1.set_xticks(np.arange(1,13))
     ax1.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
                         'Sep','Oct','Nov', 'Dec'])
-    ax1.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax1.transAxes)
+    ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
+             fontsize=6,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 # Function to covert 0 360 to -180 to 180
