@@ -3,3 +3,4 @@ xarray[io]
 matplotlib
 windrose
 cartopy
+cmcrameri
