@@ -362,7 +362,7 @@ if var_type == 'Wind':
         lat_loc, lon_loc = user_input_loc(lat,lon)
         mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
         ds_u_loc = ds_u['uwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
-        ds_v_loc = ds_v['uwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
+        ds_v_loc = ds_v['vwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
         plot_vertical_wind(ds_u_loc,ds_v_loc,mon_sel)
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
