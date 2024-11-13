@@ -125,6 +125,10 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
                    coordinates='figure')
     ax.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
+    ax.set_xticklabels(np.linspace(lon_min,lon_max,num=5,endpoint=True),
+                       size='xx-small')
+    ax.set_yticklabels(np.linspace(lat_min,lat_max,num=5,endpoint=True),
+                       size='xx-small')
     ax.set_xlabel('Longitude',size='small')
     ax.set_ylabel('Latitude',size='small')
     ax.set_title('Month:'+calendar.month_name[time_s][:3]+'  Level:'+str(ds_u.level.values)+' '+ds_u.level.GRIB_name)
@@ -166,8 +170,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)# label="Relative humidity (%)",                     
         else:
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="Relative humidity (%)",                  
-        cbar.set_label('Relative humidity (%)',size='xx-small')
-    
+        cbar.set_label('Relative humidity (%)',size='xx-small')    
     cbar.ax.tick_params(labelsize='xx-small')
 
     ax3.set_title(calendar.month_name[time_s][:3])
@@ -176,6 +179,10 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
 
     ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
+    ax3.set_xticklabels(np.linspace(lon_min,lon_max,num=5,endpoint=True),
+                        size='xx-small')
+    ax3.set_yticklabels(np.linspace(lat_min,lat_max,num=5,endpoint=True),
+                        size='xx-small')
     if x_size<y_size:
         ax3.text(0.7,-0.4,'Data Source: '+ds_temp.attrs['source'],
                  fontsize=4,transform=ax3.transAxes)
