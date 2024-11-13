@@ -58,7 +58,7 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
     ax.set_legend()
-    ax.text(0.6,0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
+    ax.text(0.6,-0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot()  
 #%% [markdown] 
 ## Spatial Wind Vector Plot
@@ -113,7 +113,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Month:'+calendar.month_name[time_s][:3]+'  Level:'+str(ds_u.level.values)+' '+ds_u.level.GRIB_name)
-    ax.text(0.6,0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
+    ax.text(0.6,-0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot(fig)
 #%% [markdown] 
 ## Spatial Plot
