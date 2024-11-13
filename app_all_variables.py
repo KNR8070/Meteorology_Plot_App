@@ -289,6 +289,34 @@ def convert_180_180(ds_var):
     ds_var.coords['lon'] = (ds_var.coords['lon'] + 179.0625) % 358.125 - 179.0625
     ds_var2 = ds_var.sortby(ds_var.lon)
     return (ds_var2)
+#%% [markdown]
+# finding the user input spatial box for plotting
+def user_input_box(lat,lon):
+    lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=float(str(lat.values.min())), 
+                                    max_value=float(str(lat.values.max())), 
+                                    value=-85.00,step=0.01, format='%2.2f')
+    lat_max = st.sidebar.number_input("Enter Lat. max.", float(str(lat.values.min())), 
+                                    max_value=float(str(lat.values.max())), 
+                                    value=85.00,step=0.01, format='%2.2f',
+                                    placeholder="Must be greater than Lat min.")
+    lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=float(str(lon.values.min())), 
+                                    max_value=float(str(lon.values.max())), 
+                                    value=-178.00,step=0.01, format='%3.2f')
+    lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=float(str(lon.values.min())), 
+                                    max_value=float(str(lon.values.max())), 
+                                    value=178.00,step=0.01, format='%3.2f',
+                                    placeholder="Must be greater than Lon min.")
+    return lat_min, lat_max, lon_min, lon_max
+#%% [markdown]
+# finding lat, lon location
+def user_input_loc(lat,lon):
+    lat_loc = st.sidebar.number_input("Enter Latitude", min_value=float(str(lat.values.min())), 
+                                          max_value=float(str(lat.values.max())), 
+                                          value=0.00,step=0.01, format='%2.2f')
+    lon_loc = st.sidebar.number_input("Enter Longitude", min_value=float(str(lon.values.min())), 
+                                          max_value=float(str(lon.values.max())), 
+                                          value=0.00,step=0.01, format='%3.2f')
+    return lat_loc, lon_loc
 #%% [markdown] 
 ## Streamlit App
 st.title("Met. Data Visualization App")
@@ -307,22 +335,11 @@ if var_type == 'Wind':
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose", "Spatial Wind Vectors", "Time Series"))
     if plot_type == "Wind Rose":
         st.header("Wind Rose")
-        # lat_loc = st.sidebar.selectbox("Select Latitude", lat.lat.values)
-        # lon_loc = st.sidebar.selectbox("Select Longitude", lon.lon.values)
-        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=float(str(lat.values.min())), 
-                                          max_value=float(str(lat.values.max())), 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=float(str(lon.values.min())), 
-                                          max_value=float(str(lon.values.max())), 
-                                       value=0.00,step=0.01, format='%3.2f')
+        lat_loc, lon_loc = user_input_loc(lat,lon)
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
-        # time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
 
         speed_loc, direction_loc = calculate_wind(ds_u['uwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'),
                                           ds_v['vwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'))
-
-        # speed_at_loc = speed.sel(latitude=lat_loc, longitude=lon_loc,method='nearest')
-        # direction_at_loc = direction.sel(latitude=lat_loc, longitude=lon_loc,method='nearest')
 
         plot_wind_rose(speed_loc.sel(level=level_sel).values, 
                        direction_loc.sel(level=level_sel).values,
@@ -330,20 +347,7 @@ if var_type == 'Wind':
 
     elif plot_type == "Spatial Wind Vectors":
         st.header("Spatial Wind Vectors")        
-        lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=float(str(lat.values.min())), 
-                                          max_value=float(str(lat.values.max())), 
-                                          value=-85.00,step=0.01, format='%2.2f')
-        lat_max = st.sidebar.number_input("Enter Lat. max.", float(str(lat.values.min())), 
-                                          max_value=float(str(lat.values.max())), 
-                                          value=85.00,step=0.01, format='%2.2f',
-                                          placeholder="Must be greater than Lat min.")
-        lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=float(str(lon.values.min())), 
-                                          max_value=float(str(lon.values.max())), 
-                                          value=-178.00,step=0.01, format='%3.2f')
-        lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=float(str(lon.values.min())), 
-                                          max_value=float(str(lon.values.max())), 
-                                          value=178.00,step=0.01, format='%3.2f',
-                                          placeholder="Must be greater than Lon min.")
+        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
@@ -359,10 +363,7 @@ if var_type == 'Wind':
 
     elif plot_type == "Time Series":
         st.header("Wind Speed Time Series")
-        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=0.00, max_value=360.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
+        lat_loc, lon_loc = user_input_loc(lat,lon)
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         speed_loc, direction_loc = calculate_wind(ds_u['uwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'),
                                   ds_v['vwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'))
@@ -372,53 +373,29 @@ elif var_type == 'Temp_2m':
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")        
-        lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lat_max = st.sidebar.number_input("Enter Lat. max.", min_value=-90.00, max_value=90.00, 
-                                          value=40.00,step=0.01, format='%2.2f',placeholder="Must be greater than Lat min.")
-        lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=-180.00, max_value=180.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
-        lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=-180.00, max_value=180.00, 
-                                       value=100.00,step=0.01, format='%3.2f',placeholder="Must be greater than Lon min.")
+        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_temp_subset = ds_temp['air'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
-        # plot_spatial(ds_temp_subset, lat_min, lat_max, lon_min, lon_max)
+
         plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, lon_min, lon_max,time_sel)
-        # plot_spatial2(ds_temp_subset)
-        # ds_temp_subset.plot(col='time',col_wrap=6)
+
     else:
         st.header("Time series plot")
-        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=0.00, max_value=360.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
+        lat_loc, lon_loc = user_input_loc(lat,lon)
         temp_loc = ds_temp['air'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         plot_time_series2(temp_loc.isel(level=0))
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
-        st.header("Spatial plot")        
-        lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lat_max = st.sidebar.number_input("Enter Lat. max.", min_value=-90.00, max_value=90.00, 
-                                          value=40.00,step=0.01, format='%2.2f',placeholder="Must be greater than Lat min.")
-        lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=-180.00, max_value=180.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
-        lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=-180.00, max_value=180.00, 
-                                       value=100.00,step=0.01, format='%3.2f',placeholder="Must be greater than Lon min.")
+        st.header("Spatial plot")
+        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)        
         ds_pr_subset = ds_pr['precip'].sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
-        # plot_spatial(ds_temp_subset, lat_min, lat_max, lon_min, lon_max)
         plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel)
-        # plot_spatial2(ds_temp_subset)
-        # ds_temp_subset.plot(col='time',col_wrap=6)
     else:
         st.header("Time series plot")
-        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=0.00, max_value=360.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
+        lat_loc, lon_loc = user_input_loc(lat,lon)
         pr_loc = ds_pr['precip'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         plot_time_series2(pr_loc)
 ######################################## Relative Humidity
@@ -426,31 +403,15 @@ else:
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")        
-        lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lat_max = st.sidebar.number_input("Enter Lat. max.", min_value=-90.00, max_value=90.00, 
-                                          value=40.00,step=0.01, format='%2.2f',placeholder="Must be greater than Lat min.")
-        lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=-180.00, max_value=180.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
-        lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=-180.00, max_value=180.00, 
-                                       value=100.00,step=0.01, format='%3.2f',placeholder="Must be greater than Lon min.")
+        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_rh_subset = ds_rh['rhum'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
-        # plot_spatial(ds_temp_subset, lat_min, lat_max, lon_min, lon_max)
+
         plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel)
-        # plot_spatial2(ds_temp_subset)
-        # ds_temp_subset.plot(col='time',col_wrap=6)
     else:
         st.header("Time series plot")
-        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=0.00, max_value=360.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
+        lat_loc, lon_loc = user_input_loc(lat,lon)
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
-        plot_time_series2(rh_loc.sel(level=level_sel))
-    
-    
-    
-    
+        plot_time_series2(rh_loc.sel(level=level_sel))  
