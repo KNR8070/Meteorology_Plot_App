@@ -285,8 +285,8 @@ if var_type == 'Wind':
         # speed_at_loc = speed.sel(latitude=lat_loc, longitude=lon_loc,method='nearest')
         # direction_at_loc = direction.sel(latitude=lat_loc, longitude=lon_loc,method='nearest')
 
-        plot_wind_rose(speed_loc.sel(level=level_sel), 
-                       direction_loc.sel(level=level_sel),
+        plot_wind_rose(speed_loc.sel(level=level_sel).values, 
+                       direction_loc.sel(level=level_sel).values,
                        speed_loc.lat.values,speed_loc.lon.values)
 
     elif plot_type == "Spatial Wind Vectors":
