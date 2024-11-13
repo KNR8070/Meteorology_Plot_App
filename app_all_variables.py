@@ -246,17 +246,22 @@ def plot_time_series2(var):
     # ax.legend('upper left')
     # ax2.legend()
     st.pyplot(fig)
+#%% [markdown]
+# Function to covert 0 360 to -180 to 180
+def convert_180_180(ds_var):
+    ds_var.coords['lon'] = (ds_var.coords['lon'] + 179.0625) % 358.125 - 179.0625
+    ds_var2 = ds_var.sortby(ds_var.lon)
+    return (ds_var2)
 #%% [markdown] 
 ## Streamlit App
 st.title("Met. Data Visualization App")
-ds_temp = load_temp_data()
-ds_u = load_uwind_data()
-ds_v =load_vwind_data()
-ds_pr =load_pr_data()
-ds_rh = load_rh_data()
+ds_temp = convert_180_180(load_temp_data())
+ds_u = convert_180_180(load_uwind_data())
+ds_v = convert_180_180(load_vwind_data())
+ds_pr = convert_180_180(load_pr_data())
+ds_rh = convert_180_180(load_rh_data())
 lon = ds_temp['lon']
 lat = ds_temp['lat']
-
 #%% [markdown]
 ## User Inputs  
 var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
@@ -267,9 +272,9 @@ if var_type == 'Wind':
         st.header("Wind Rose")
         # lat_loc = st.sidebar.selectbox("Select Latitude", lat.lat.values)
         # lon_loc = st.sidebar.selectbox("Select Longitude", lon.lon.values)
-        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=-90.00, max_value=90.00, 
+        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=lat.values.min(), max_value=lat.values.max(), 
                                           value=0.00,step=0.01, format='%2.2f')
-        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=-180.00, max_value=180.00, 
+        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=lon.values.min(), max_value=lon.values.max(), 
                                        value=0.00,step=0.01, format='%3.2f')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         # time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
