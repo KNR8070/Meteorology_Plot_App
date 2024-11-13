@@ -89,7 +89,7 @@ def calculate_x_y_size(lat_min, lat_max, lon_min, lon_max):
 def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     # Select data within specified lat/lon box   
     speed_mean = np.sqrt(ds_u**2 + ds_v**2)
-    x_size, y_size = calculate_x_y_size()
+    x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
     fig, ax = plt.subplots(figsize=(x_size,y_size),
                            subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
@@ -98,7 +98,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
     if x_size<y_size:
-        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.2)
+        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.3)
     else:
         fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.5)
     if (lat_max-lat_min)>60 and (lon_max-lon_min)>60:
@@ -139,7 +139,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
             fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
-                         shrink=0.2)
+                         shrink=0.3)
         else:
             fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
                          shrink=0.5)
@@ -149,7 +149,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
             fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
-                         shrink=0.2)
+                         shrink=0.3)
         else:
             fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
                          shrink=0.5)
@@ -157,7 +157,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         plot_data = np.squeeze(var_subset.isel(time=time_s))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
-            fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", shrink=0.2)
+            fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", shrink=0.3)
         else:
             fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", shrink=0.5)
         
