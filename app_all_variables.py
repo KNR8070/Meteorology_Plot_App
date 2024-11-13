@@ -305,10 +305,10 @@ if var_type == 'Wind':
                                           placeholder="Must be greater than Lat min.")
         lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=float(str(lon.values.min())), 
                                           max_value=float(str(lon.values.max())), 
-                                          value=-179.00,step=0.01, format='%3.2f')
+                                          value=-178.00,step=0.01, format='%3.2f')
         lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=float(str(lon.values.min())), 
                                           max_value=float(str(lon.values.max())), 
-                                          value=179.00,step=0.01, format='%3.2f',
+                                          value=178.00,step=0.01, format='%3.2f',
                                           placeholder="Must be greater than Lon min.")
         
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
