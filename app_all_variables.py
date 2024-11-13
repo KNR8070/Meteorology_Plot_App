@@ -98,7 +98,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
     if x_size<y_size:
-        cbar = fig.colorbar(speed_plot, ax=ax,shrink=0.5)# label="Wind Speed (m/s)",
+        cbar = fig.colorbar(speed_plot, ax=ax,shrink=0.3)# label="Wind Speed (m/s)",
     else:
         cbar = fig.colorbar(speed_plot, ax=ax, shrink=0.5)#label="Wind Speed (m/s)",
                       
