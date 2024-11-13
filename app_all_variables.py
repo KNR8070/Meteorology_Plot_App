@@ -272,9 +272,11 @@ if var_type == 'Wind':
         st.header("Wind Rose")
         # lat_loc = st.sidebar.selectbox("Select Latitude", lat.lat.values)
         # lon_loc = st.sidebar.selectbox("Select Longitude", lon.lon.values)
-        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=lat.values.min(), max_value=lat.values.max(), 
+        lat_loc = st.sidebar.number_input("Enter Latitude", min_value=float(str(lat.values.min())), 
+                                          max_value=float(str(lat.values.max())), 
                                           value=0.00,step=0.01, format='%2.2f')
-        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=lon.values.min(), max_value=lon.values.max(), 
+        lon_loc = st.sidebar.number_input("Enter Longitude", min_value=float(str(lon.values.min())), 
+                                          max_value=float(str(lon.values.max())), 
                                        value=0.00,step=0.01, format='%3.2f')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         # time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
