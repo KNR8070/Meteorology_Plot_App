@@ -263,6 +263,12 @@ def plot_time_series2(var):
              fontsize=6,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
+# Plotting vertical wind profile
+def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
+    fig, ax1 = plt.subplots(figsize=(6,12))
+    ax1.quiver(u_var.values[:,mon],v_var.values[:,mon])
+    st.pyplot(fig)
+#%% [markdown]
 # Function to covert 0 360 to -180 to 180
 def convert_180_180(ds_var):
     ds_var.coords['lon'] = (ds_var.coords['lon'] + 179.0625) % 358.125 - 179.0625
@@ -312,7 +318,10 @@ lat = ds_temp['lat']
 var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
-    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose", "Spatial Wind Vectors", "Time Series"))
+    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
+                                                          "Spatial Wind Vectors", 
+                                                          "Time Series",
+                                                          "Vertical Profile"))
     if plot_type == "Wind Rose":
         st.header("Wind Rose")
         lat_loc, lon_loc = user_input_loc(lat,lon)
@@ -348,6 +357,13 @@ if var_type == 'Wind':
         speed_loc, direction_loc = calculate_wind(ds_u['uwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'),
                                   ds_v['vwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'))
         plot_time_series(speed_loc.sel(level=level_sel),direction_loc.sel(level=level_sel))
+    elif plot_type == 'Vertical Profile': 
+        st.header("Wind Speed Vertical Profile")
+        lat_loc, lon_loc = user_input_loc(lat,lon)
+        mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
+        ds_u_loc = ds_u['uwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
+        ds_v_loc = ds_v['uwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
+        plot_vertical_wind(ds_u_loc,ds_v_loc,mon_sel)
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
