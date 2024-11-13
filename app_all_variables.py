@@ -314,8 +314,12 @@ if var_type == 'Wind':
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         
-        ds_u_subset = ds_u['uwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max),level=level_sel)
-        ds_v_subset = ds_v['vwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max),level=level_sel)
+        ds_u_subset = ds_u['uwnd'].sel(lat=slice(lat_max, lat_min), 
+                                       lon=slice(lon_min, lon_max),
+                                       level=level_sel, method='nearest')
+        ds_v_subset = ds_v['vwnd'].sel(lat=slice(lat_max, lat_min), 
+                                       lon=slice(lon_min, lon_max),
+                                       level=level_sel, method='nearest')
         plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_u_subset[time_sel-1,:,:], 
                           lat_min, lat_max, lon_min, lon_max,time_sel)
 
