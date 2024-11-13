@@ -298,17 +298,17 @@ if var_type == 'Wind':
         st.header("Spatial Wind Vectors")        
         lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=float(str(lat.values.min())), 
                                           max_value=float(str(lat.values.max())), 
-                                          value=-90.00,step=0.01, format='%2.2f')
+                                          value=-85.00,step=0.01, format='%2.2f')
         lat_max = st.sidebar.number_input("Enter Lat. max.", float(str(lat.values.min())), 
                                           max_value=float(str(lat.values.max())), 
-                                          value=90.00,step=0.01, format='%2.2f',
+                                          value=85.00,step=0.01, format='%2.2f',
                                           placeholder="Must be greater than Lat min.")
         lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=float(str(lon.values.min())), 
                                           max_value=float(str(lon.values.max())), 
-                                          value=-180.00,step=0.01, format='%3.2f')
+                                          value=-179.00,step=0.01, format='%3.2f')
         lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=float(str(lon.values.min())), 
                                           max_value=float(str(lon.values.max())), 
-                                          value=180.00,step=0.01, format='%3.2f',
+                                          value=179.00,step=0.01, format='%3.2f',
                                           placeholder="Must be greater than Lon min.")
         
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
