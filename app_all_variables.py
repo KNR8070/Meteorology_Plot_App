@@ -62,11 +62,9 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     ax.set_legend()
     ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot()  
-#%% [markdown] 
-## Spatial Wind Vector Plot
-def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
-    # Select data within specified lat/lon box   
-    speed_mean = np.sqrt(ds_u**2 + ds_v**2)
+#%% [markdown]
+# calculating figsize for spatial plots
+def calculate_x_y_size(lat_min, lat_max, lon_min, lon_max):
     ### Dynamic plot size
     lat_range = lat_max-lat_min
     lon_range = lon_max-lon_min
@@ -85,6 +83,13 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
         ratio_yx = np.round(y_ratio/x_ratio)
         x_size = np.round(6)
         y_size = np.round(5)
+    return x_size, y_size
+#%% [markdown] 
+# Function to plot wind vector plot
+def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
+    # Select data within specified lat/lon box   
+    speed_mean = np.sqrt(ds_u**2 + ds_v**2)
+    x_size, y_size = calculate_x_y_size()
     fig, ax = plt.subplots(figsize=(x_size,y_size),
                            subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
@@ -92,7 +97,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
-    if x_ratio>y_ratio:
+    if x_size<y_size:
         fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.4)
     else:
         fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.7)
@@ -117,67 +122,44 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     ax.set_title('Month:'+calendar.month_name[time_s][:3]+'  Level:'+str(ds_u.level.values)+' '+ds_u.level.GRIB_name)
     ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot(fig)
-#%% [markdown] 
-# Function to plot wind vector plot
-def plot_spatial(temp_subset, lat_min, lat_max, lon_min, lon_max):
-    # Select data within specified lat/lon box
-    fig, ax3 = plt.subplots(nrows=2,ncols=6,subplot_kw={'projection': ccrs.PlateCarree()},
-                           sharex=True,sharey=True,figsize=(12,4))
-    for i_row in np.arange(2):
-        for i_col in np.arange(6):
-            ax3[i_row,i_col].set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
-            ax3[i_row,i_col].add_feature(cfeature.COASTLINE)
-            # ax.add_feature(cfeature.BORDERS)
-            
-            # Plot contour fill for wind speed
-            lons, lats = np.meshgrid(temp_subset.lon, temp_subset.lat)
-            s_plot = ax3[i_row,i_col].contourf(lons, lats, 
-                                              np.squeeze(temp_subset.isel(time=int(i_row*6+i_col)))-273.15, 
-                                              cmap='viridis', extend='both')
-            ax3[i_row,i_col].set_title(calendar.month_name[int(i_row*6+i_col)+1][:3])
-            
-            if i_row==1:
-                ax3[i_row,i_col].set_xlabel('Longitude')
-                ax3[i_row,i_col].set_xticks(np.linspace(lon_min,lon_max,num=2,endpoint=True))
-                ax3[i_row,i_col].set_xticklabels([lon_min,lon_max],fontsize=6)
-                if i_col==0:
-                    ax3[i_row,i_col].set_ylabel('Latitude')
-
-            else: #0th Row
-                if i_col==0:
-                    ax3[i_row,i_col].set_ylabel('Latitude')
-                    ax3[i_row,i_col].set_yticks(np.linspace(lat_min,lat_max,num=2,endpoint=True))
-                else:                    
-                    ax3[i_row,i_col].set_yticks(np.linspace(lat_min,lat_max,num=2,endpoint=True))
-    
-    fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", shrink=0.75)
-    ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
-    st.pyplot(fig)
 #%% [markdown]
 #Function to plot spatial variation in variables
 def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
-    plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = False
-    fig, ax3 = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})#,
-
+    #plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = False
+    x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
+    fig, ax3 = plt.subplots(figsize=(x_size,y_size),
+                            subplot_kw={'projection': ccrs.PlateCarree()})#,
     ax3.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
-    ax3.add_feature(cfeature.COASTLINE)
-    
+    ax3.add_feature(cfeature.COASTLINE)   
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(var_subset.lon, var_subset.lat)
     
     if var_subset.var_desc=='Air temperature':
         plot_data = np.squeeze(var_subset.isel(time=time_s))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
-        fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", shrink=0.75)
+        if x_size<y_size:
+            fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
+                         shrink=0.4)
+        else:
+            fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
+                         shrink=0.7)
         
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
-        fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", shrink=0.75)
+        if x_size<y_size:
+            fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
+                         shrink=0.4)
+        else:
+            fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
+                         shrink=0.7)
     else:
         plot_data = np.squeeze(var_subset.isel(time=time_s))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
-        fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", shrink=0.75)
+        if x_size<y_size:
+            fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", shrink=0.4)
+        else:
+            fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", shrink=0.7)
         
     ax3.set_title(calendar.month_name[time_s][:3])
     ax3.set_xlabel('Longitude')
@@ -186,8 +168,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
     ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
-    st.pyplot(fig)
-    
+    st.pyplot(fig)   
 #%% [markdown] 
 # Function to plot wind speed and direction time series
 def plot_time_series(speed,direction): 
