@@ -1,0 +1,5 @@
+streamlit
+xarray[io]
+matplotlib
+windrose
+cartopy
