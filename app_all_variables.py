@@ -268,7 +268,7 @@ def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
     speed_loc,_ = calculate_wind(u_var,v_var)
     #speed_loc.reindex(level=list(reversed(speed_loc.level)))
     fig, ax1 = plt.subplots(figsize=(6,12))
-    ax1.plot(speed_loc[mon,:],speed_loc.level.values[::-1])
+    ax1.plot(speed_loc[mon,::-1],speed_loc.level.values)
     ax1.invert_yaxis()
     #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
     #           u_var.values[mon,:],v_var.values[mon,:])
