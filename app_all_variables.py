@@ -99,7 +99,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
     if x_ratio>y_ratio:
-        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.5)
+        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.4)
     else:
         fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.7)
     if (lat_max-lat_min)>60 and (lon_max-lon_min)>60:
