@@ -99,10 +99,10 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
     if x_size<y_size:
         cbar = fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
-                     shrink=0.3,labelsize=10)
+                     shrink=0.3,size=10)
     else:
         cbar = fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
-                     shrink=0.5,labelsize=10)
+                     shrink=0.5,size=10)
     
     cbar.ax.tick_params(labelsize='xx-small')
 
