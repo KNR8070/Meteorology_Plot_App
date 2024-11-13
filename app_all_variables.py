@@ -98,13 +98,12 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
     if x_size<y_size:
-        cbar = fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
-                     shrink=0.3,size=10)
+        cbar = fig.colorbar(speed_plot, ax=ax,shrink=0.5)# label="Wind Speed (m/s)",
     else:
-        cbar = fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
-                     shrink=0.5,size=10)
-    
+        cbar = fig.colorbar(speed_plot, ax=ax, shrink=0.5)#label="Wind Speed (m/s)",
+                      
     cbar.ax.tick_params(labelsize='xx-small')
+    cbar.set_label('Wind Speed (m/s)',size='xx-small')
 
     if (lon_max-lon_min)<60:
         alt_num = 1
