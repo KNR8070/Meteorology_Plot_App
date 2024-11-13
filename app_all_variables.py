@@ -110,7 +110,8 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     Q = ax.quiver(lons[::alt_num,::alt_num], 
               lats[::alt_num,::alt_num], 
               ds_u[::alt_num,::alt_num], 
-              ds_v[::alt_num,::alt_num], units='inches', alpha=0.6)
+              ds_v[::alt_num,::alt_num],
+              angles='xy', scale_units='xy', scale=5,alpha=0.6)
     if ds_u.level.values<800:
         qk = ax.quiverkey(Q, 0.8, 0.9, 15, r'$15 \frac{m}{s}$', labelpos='E',
                    coordinates='figure')
