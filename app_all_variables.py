@@ -58,6 +58,7 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
     ax.set_legend()
+    ax.text(0.6,0.05,'Source: '+ds_temp.attrs['source'])
     st.pyplot()  
 #%% [markdown] 
 ## Spatial Wind Vector Plot
@@ -112,6 +113,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Month:'+calendar.month_name[time_s][:3]+'  Level:'+str(ds_u.level.values)+' '+ds_u.level.GRIB_name)
+    ax.text(0.6,0.05,'Source: '+ds_temp.attrs['source'])
     st.pyplot(fig)
 #%% [markdown] 
 ## Spatial Plot
@@ -147,6 +149,7 @@ def plot_spatial(temp_subset, lat_min, lat_max, lon_min, lon_max):
                     ax3[i_row,i_col].set_yticks(np.linspace(lat_min,lat_max,num=2,endpoint=True))
     
     fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", shrink=0.75)
+    ax3.text(0.6,0.05,'Source: '+ds_temp.attrs['source'])
     st.pyplot(fig)
 #%% [markdown]
 ##  Spatial plot test
@@ -180,6 +183,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
 
     ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
+    ax3.text(0.6,0.05,'Source: '+ds_temp.attrs['source'])
     st.pyplot(fig)
     
 #%% [markdown] 
@@ -207,8 +211,7 @@ def plot_time_series(speed,direction):
                   ' and Longitude = '+str(speed_loc.lon.values)+
                   '  Level:'+str(speed.level.values)+
                   ' '+speed.level.GRIB_name)
-    # ax.legend('upper left')
-    # ax2.legend()
+    ax1.text(0.6,0.05,'Source: '+ds_temp.attrs['source'])
     st.pyplot(fig)
 #%% [markdown]
 ##  Time Series Plot
@@ -234,9 +237,7 @@ def plot_time_series2(var):
     ax1.set_xticks(np.arange(1,13))
     ax1.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
                         'Sep','Oct','Nov', 'Dec'])
-    # ax1.tick_params(axis='y', labelcolor=color)
-    # ax.legend('upper left')
-    # ax2.legend()
+    ax1.text(0.6,0.05,'Source: '+ds_temp.attrs['source'])
     st.pyplot(fig)
 #%% [markdown]
 # Function to covert 0 360 to -180 to 180
