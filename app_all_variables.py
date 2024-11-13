@@ -432,5 +432,5 @@ else:
         lat_loc, lon_loc = user_input_loc(lat,lon)
         mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
-        plot_vertical_wind(rh_loc,mon_sel)  
+        plot_vertical_rh(rh_loc,mon_sel)  
 # %%
