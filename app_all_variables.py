@@ -71,7 +71,26 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
 def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     # Select data within specified lat/lon box   
     speed_mean = np.sqrt(ds_u**2 + ds_v**2)
-    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+    #%% Dynamic plot size
+    lat_range = lat_max-lat_min
+    lon_range = lon_max-lon_min
+    
+    x_ratio = lon_range/(lon_range+lat_range)
+    y_ratio = lat_range/(lon_range+lat_range)
+    
+    if x_ratio>y_ratio:
+        ratio_xy = np.round(x_ratio/y_ratio)
+        x_size = np.round(5*ratio_xy)
+        y_size = np.round(5)
+    elif x_ratio==y_ratio:
+        x_size = np.round(7)
+        y_size = np.round(5)
+    else:
+        ratio_yx = np.round(y_ratio/x_ratio)
+        x_size = np.round(6)
+        y_size = np.round(5)
+    fig, ax = plt.subplots(figsize=(x_size,y_size),
+                           subplot_kw={'projection': ccrs.PlateCarree()})
     ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.COASTLINE)
     # ax.add_feature(cfeature.BORDERS)
@@ -79,7 +98,10 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
-    fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)")
+    if x_ratio>y_ratio:
+        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)")
+    else:
+        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.7)
     if (lat_max-lat_min)>60 and (lon_max-lon_min)>60:
         alt_num = 2
     else:
