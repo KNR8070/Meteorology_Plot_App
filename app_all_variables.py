@@ -410,7 +410,9 @@ elif var_type == 'Precipitation':
         plot_time_series2(pr_loc)
 ######################################## Relative Humidity
 else:
-    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
+    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", 
+                                                          "Time Series",
+                                                          "Vertical Profile"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")        
         [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
