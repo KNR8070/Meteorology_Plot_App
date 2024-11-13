@@ -217,9 +217,16 @@ def plot_time_series(speed,direction):
     st.pyplot(fig)
 #%% [markdown]
 # Function to plot time series of variables
-def plot_time_series2(var):
+def plot_time_series2(var,lat_loc,lon_loc):
     # plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = True
     fig, ax1 = plt.subplots(figsize=(12,6))
+    #subfig, subax = fig.subfigures()
+    s_lat_min = var.lat.values-15
+    s_lat_max = var.lat.values+15
+    s_lon_min = var.lon.values-15
+    s_lon_max = var.lon.values+15
+    subpos = [0.6,0.6,0.7,0.7]
+    subax = add_subplot_axes(ax1,subpos)
 
     color = 'tab:blue'
     if var.var_desc == 'Air temperature':        
@@ -231,11 +238,15 @@ def plot_time_series2(var):
         ax1.set_ylabel("Mean Precipitation (mm/day)",color=color, fontsize=14)
         ax1.set_yticks(np.linspace(np.floor(min(var.values)),np.floor(max(var.values)+1),num=5))
     else:
-        ax1.plot(np.arange(1,13), var.values,color=color)
+        var_loc = var['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
+        ax1.plot(np.arange(1,13), var_loc.values,color=color)
         ax1.set_xlabel("Month")
         ax1.set_ylabel("Relative humidity (%)",color=color, fontsize=14)
-        ax1.set_yticks(np.linspace(np.floor(min(var.values)),
-                                   np.floor(max(var.values)+1),num=5))
+        ax1.set_yticks(np.linspace(np.floor(min(var_loc.values)),
+                                   np.floor(max(var_loc.values)+1),num=5))
+        subax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
+        subax.add_feature(cfeature.COASTLINE)
+        subax.scatter(lon_loc,lat_loc,marker='*')
     
     ax1.set_xlabel("Month")
     ax1.set_xticks(np.arange(1,13))
@@ -243,6 +254,30 @@ def plot_time_series2(var):
                         'Sep','Oct','Nov', 'Dec'])
     ax1.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax1.transAxes)
     st.pyplot(fig)
+
+#%% [markdown] #URL: https://stackoverflow.com/questions/17458580/embedding-small-plots-inside-subplots-in-matplotlib
+# subax
+def add_subplot_axes(ax,rect,facecolor='w'):
+    fig = plt.gcf()
+    box = ax.get_position()
+    width = box.width
+    height = box.height
+    inax_position  = ax.transAxes.transform(rect[0:2])
+    transFigure = fig.transFigure.inverted()
+    infig_position = transFigure.transform(inax_position)    
+    x = infig_position[0]
+    y = infig_position[1]
+    width *= rect[2]
+    height *= rect[3]  # <= Typo was here
+    subax = fig.add_axes([x,y,width,height],facecolor=facecolor)  # matplotlib 2.0+
+    #subax = fig.add_axes([x,y,width,height],axisbg=axisbg)
+    x_labelsize = subax.get_xticklabels()[0].get_size()
+    y_labelsize = subax.get_yticklabels()[0].get_size()
+    x_labelsize *= rect[2]**0.5
+    y_labelsize *= rect[3]**0.5
+    subax.xaxis.set_tick_params(labelsize=x_labelsize)
+    subax.yaxis.set_tick_params(labelsize=y_labelsize)
+    return subax
 #%% [markdown]
 # Function to covert 0 360 to -180 to 180
 def convert_180_180(ds_var):
@@ -372,7 +407,6 @@ else:
     else:
         st.header("Time series plot")
         lat_loc, lon_loc = user_input_loc(lat,lon)
-        rh_loc = ds_rh['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
-        plot_time_series2(rh_loc.sel(level=level_sel),lat_loc,lon_loc)  
+        plot_time_series2(ds_rh.sel(level=level_sel),lat_loc,lon_loc)  
 # %%
