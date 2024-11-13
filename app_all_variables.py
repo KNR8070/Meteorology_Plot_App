@@ -374,5 +374,5 @@ else:
         lat_loc, lon_loc = user_input_loc(lat,lon)
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
-        plot_time_series2(rh_loc.sel(level=level_sel),lat_loc,lon_loc)  
+        plot_time_series2(rh_loc.sel(level=level_sel))  
 # %%
