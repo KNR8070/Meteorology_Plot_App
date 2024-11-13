@@ -58,7 +58,7 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
     ax.set_legend()
-    ax.text(0.6,-0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
+    ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot()  
 #%% [markdown] 
 ## Spatial Wind Vector Plot
@@ -149,7 +149,7 @@ def plot_spatial(temp_subset, lat_min, lat_max, lon_min, lon_max):
                     ax3[i_row,i_col].set_yticks(np.linspace(lat_min,lat_max,num=2,endpoint=True))
     
     fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", shrink=0.75)
-    ax3.text(0.6,0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
+    ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 ##  Spatial plot test
@@ -183,7 +183,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
 
     ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-    ax3.text(0.6,0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
+    ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
     st.pyplot(fig)
     
 #%% [markdown] 
@@ -211,7 +211,7 @@ def plot_time_series(speed,direction):
                   ' and Longitude = '+str(speed_loc.lon.values)+
                   '  Level:'+str(speed.level.values)+
                   ' '+speed.level.GRIB_name)
-    ax1.text(0.6,0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax1.transAxes)
+    ax1.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 ##  Time Series Plot
@@ -237,7 +237,7 @@ def plot_time_series2(var):
     ax1.set_xticks(np.arange(1,13))
     ax1.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
                         'Sep','Oct','Nov', 'Dec'])
-    ax1.text(0.6,0.05,'Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax1.transAxes)
+    ax1.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 # Function to covert 0 360 to -180 to 180
