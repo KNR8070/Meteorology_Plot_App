@@ -98,11 +98,14 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
     if x_size<y_size:
-        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
+        cbar = fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
                      shrink=0.3,labelsize=10)
     else:
-        fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
+        cbar = fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",
                      shrink=0.5,labelsize=10)
+    
+    cbar.ax.tick_params(labelsize='xx-small')
+
     if (lon_max-lon_min)<60:
         alt_num = 1
     elif (lon_max-lon_min)>60 and (lon_max-lon_min)<200:
@@ -143,31 +146,33 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         plot_data = np.squeeze(var_subset.isel(time=time_s))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
-            fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
-                         shrink=0.3,labelsize=10)
+            cbar = fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
+                         shrink=0.3)
         else:
-            fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
-                         shrink=0.5,labelsize=10)
+            cbar = fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
+                         shrink=0.5)
         
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
-            fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
-                         shrink=0.3,labelsize=10)
+            cbar = fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
+                         shrink=0.3)
         else:
-            fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
-                         shrink=0.5,labelsize=10)
+            cbar = fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
+                         shrink=0.5)
     else:
         plot_data = np.squeeze(var_subset.isel(time=time_s))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
-            fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", 
-                         shrink=0.3, labelsize=10)
+            cbar = fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", 
+                         shrink=0.3)
         else:
-            fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", 
-                         shrink=0.5,labelsize=10)
-        
+            cbar = fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", 
+                         shrink=0.5)
+    
+    cbar.ax.tick_params(labelsize='xx-small')
+
     ax3.set_title(calendar.month_name[time_s][:3])
     ax3.set_xlabel('Longitude')
     ax3.set_ylabel('Latitude')
