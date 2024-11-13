@@ -95,7 +95,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     # if climatology:
     #     ax.set_title('Plotted for time: Climatology (1991 to 2021)')
     # else:
-    ax.set_title('Plotted for Month:'+calendar.month_name[time_s])
+    ax.set_title('Month:'+calendar.month_name[time_s][:3]+'  Level:'+str(ds_u.level.values)+' '+ds_u.level.GRIB_name)
     st.pyplot(fig)
 #%% [markdown] 
 ## Spatial Plot
