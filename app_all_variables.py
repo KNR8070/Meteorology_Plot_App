@@ -106,10 +106,12 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
         alt_num = 2
     else:
         alt_num = 1
-    ax.quiver(lons[::alt_num,::alt_num], 
+    Q = ax.quiver(lons[::alt_num,::alt_num], 
               lats[::alt_num,::alt_num], 
               ds_u[::alt_num,::alt_num], 
-              ds_v[::alt_num,::alt_num],alpha=0.6)
+              ds_v[::alt_num,::alt_num],pivot='mid', units='inches', alpha=0.6)
+    qk = ax.quiverkey(Q, 0.9, 0.9, 1, r'$1 \frac{m}{s}$', labelpos='E',
+                   coordinates='figure')
     # if lon_max>180:
     #     ax.set_xticks(np.linspace(lon_min-180,lon_max-180,num=5,endpoint=True))
     # else:
