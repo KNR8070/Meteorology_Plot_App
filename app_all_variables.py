@@ -80,7 +80,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
     fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)")
-    alt_num = 3
+    alt_num = 2
     ax.quiver(lons[::alt_num,::alt_num], 
               lats[::alt_num,::alt_num], 
               ds_u[::alt_num,::alt_num], 
@@ -296,21 +296,28 @@ if var_type == 'Wind':
 
     elif plot_type == "Spatial Wind Vectors":
         st.header("Spatial Wind Vectors")        
-        lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=-90.00, max_value=90.00, 
-                                          value=0.00,step=0.01, format='%2.2f')
-        lat_max = st.sidebar.number_input("Enter Lat. max.", min_value=-90.00, max_value=90.00, 
-                                          value=40.00,step=0.01, format='%2.2f',placeholder="Must be greater than Lat min.")
-        lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=0.00, max_value=360.00, 
-                                       value=0.00,step=0.01, format='%3.2f')
-        lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=0.00, max_value=360.00, 
-                                       value=100.00,step=0.01, format='%3.2f',placeholder="Must be greater than Lon min.")
+        lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=float(str(lat.values.min())), 
+                                          max_value=float(str(lat.values.max())), 
+                                          value=-90,step=0.01, format='%2.2f')
+        lat_max = st.sidebar.number_input("Enter Lat. max.", float(str(lat.values.min())), 
+                                          max_value=float(str(lat.values.max())), 
+                                          value=90.00,step=0.01, format='%2.2f',
+                                          placeholder="Must be greater than Lat min.")
+        lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=float(str(lon.values.min())), 
+                                          max_value=float(str(lon.values.max())), 
+                                          value=-180,step=0.01, format='%3.2f')
+        lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=float(str(lon.values.min())), 
+                                          max_value=float(str(lon.values.max())), 
+                                          value=180.00,step=0.01, format='%3.2f',
+                                          placeholder="Must be greater than Lon min.")
         
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         
         ds_u_subset = ds_u['uwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max),level=level_sel)
         ds_v_subset = ds_v['vwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max),level=level_sel)
-        plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_u_subset[time_sel-1,:,:], lat_min, lat_max, lon_min, lon_max,time_sel)
+        plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_u_subset[time_sel-1,:,:], 
+                          lat_min, lat_max, lon_min, lon_max,time_sel)
 
     elif plot_type == "Time Series":
         st.header("Wind Speed Time Series")
