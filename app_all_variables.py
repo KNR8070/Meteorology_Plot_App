@@ -244,8 +244,8 @@ def plot_time_series(speed,direction):
     ax2.set_yticklabels(['N','NE','E','SE','S','SW','W','NW','N'],color=color)
     ax1.set_title('Latitude = '+str(speed_loc.lat.values)+
                   ' and Longitude = '+str(speed_loc.lon.values)+
-                  '  Level:'+str(ds_u.level.values)+
-                  ' '+ds_u.level.GRIB_name)
+                  '  Level:'+str(speed.level.values)+
+                  ' '+speed.level.GRIB_name)
     # ax.legend('upper left')
     # ax2.legend()
     st.pyplot(fig)
