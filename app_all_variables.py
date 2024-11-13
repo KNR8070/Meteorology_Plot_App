@@ -143,7 +143,11 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
     fig, ax3 = plt.subplots(figsize=(x_size,y_size),
                             subplot_kw={'projection': ccrs.PlateCarree()})#,
-    ax3.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
+    ax3.set_extent([var_subset.lon.values.min(),#lon_min,
+                    var_subset.lon.values.max(),#lon_max, 
+                    var_subset.lat.values.min(),#lat_min,
+                    var_subset.lat.values.max()],#lat_max,], 
+                   crs=ccrs.PlateCarree())
     ax3.add_feature(cfeature.COASTLINE)   
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(var_subset.lon, var_subset.lat)
