@@ -6,6 +6,8 @@ Created on Fri Nov  8 20:54:39 2024
 @author: knreddy
 """
 #%% [markdown]
+### Meteorological Visualisation App.
+#%% [markdown]
 ## load modules
 import streamlit as st
 import xarray as xr
@@ -44,14 +46,14 @@ def calculate_wind(uwnd,vwnd):
     direction = (np.arctan2(vwnd, uwnd) * 180 / np.pi + 180) % 360
     return speed, direction
 #%% [markdown] 
-## select the spatial plot box
+# Function to select the spatial plot box
 def select_box(lat,lon):
     # Latitude and Longitude Box Selection
     if ((lat_min > lat_max) or lon_min > lon_max):
         st.text("ERROR: Minimum value greater than Maximum")    
     return lat_min, lat_max, lon_min, lon_max
 #%% [markdown] 
-## Wind Rose Plot
+# Function to plot windrose Plot
 def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     fig_ws = plt.figure(figsize=(4, 4))
     ax = WindroseAxes.from_ax()
@@ -116,7 +118,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot(fig)
 #%% [markdown] 
-## Spatial Plot
+# Function to plot wind vector plot
 def plot_spatial(temp_subset, lat_min, lat_max, lon_min, lon_max):
     # Select data within specified lat/lon box
     fig, ax3 = plt.subplots(nrows=2,ncols=6,subplot_kw={'projection': ccrs.PlateCarree()},
@@ -152,7 +154,7 @@ def plot_spatial(temp_subset, lat_min, lat_max, lon_min, lon_max):
     ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
     st.pyplot(fig)
 #%% [markdown]
-##  Spatial plot test
+#Function to plot spatial variation in variables
 def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = False
     fig, ax3 = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})#,
@@ -187,7 +189,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     st.pyplot(fig)
     
 #%% [markdown] 
-## Time Series Plot
+# Function to plot wind speed and direction time series
 def plot_time_series(speed,direction): 
     # plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = True
     fig, ax1 = plt.subplots(figsize=(12,6))
@@ -214,7 +216,7 @@ def plot_time_series(speed,direction):
     ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],fontsize=6,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
-##  Time Series Plot
+# Function to plot time series of variables
 def plot_time_series2(var): 
     # plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = True
     fig, ax1 = plt.subplots(figsize=(12,6))
@@ -246,7 +248,7 @@ def convert_180_180(ds_var):
     ds_var2 = ds_var.sortby(ds_var.lon)
     return (ds_var2)
 #%% [markdown]
-# finding the user input spatial box for plotting
+# function to get the user input spatial box for plotting
 def user_input_box(lat,lon):
     lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=float(str(lat.values.min())), 
                                     max_value=float(str(lat.values.max())), 
@@ -264,7 +266,7 @@ def user_input_box(lat,lon):
                                     placeholder="Must be greater than Lon min.")
     return lat_min, lat_max, lon_min, lon_max
 #%% [markdown]
-# finding lat, lon location
+# function to find lat, lon location for plotting
 def user_input_loc(lat,lon):
     lat_loc = st.sidebar.number_input("Enter Latitude", min_value=float(str(lat.values.min())), 
                                           max_value=float(str(lat.values.max())), 
@@ -284,7 +286,7 @@ ds_rh = convert_180_180(load_rh_data())
 lon = ds_temp['lon']
 lat = ds_temp['lat']
 #%% [markdown]
-## User Inputs  
+# User Inputs  
 var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
@@ -371,3 +373,4 @@ else:
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
         plot_time_series2(rh_loc.sel(level=level_sel))  
+# %%
