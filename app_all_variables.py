@@ -125,8 +125,8 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
                    coordinates='figure')
     ax.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
+    ax.set_xlabel('Longitude',size='small')
+    ax.set_ylabel('Latitude',size='small')
     ax.set_title('Month:'+calendar.month_name[time_s][:3]+'  Level:'+str(ds_u.level.values)+' '+ds_u.level.GRIB_name)
     ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot(fig)
@@ -146,36 +146,33 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         plot_data = np.squeeze(var_subset.isel(time=time_s))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
-            cbar = fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
-                         shrink=0.3)
+            cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
         else:
-            cbar = fig.colorbar(s_plot, ax=ax3, label="2m Temperature (degC)", 
-                         shrink=0.5)
+            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="2m Temperature (degC)", 
+        cbar.set_label('2m Temperature (degC)',size='xx-small')            
         
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
-            cbar = fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
-                         shrink=0.3)
+            cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="Mean Precipitation (mm/day)",                      
         else:
-            cbar = fig.colorbar(s_plot, ax=ax3, label="Mean Precipitation (mm/day)", 
-                         shrink=0.5)
+            cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.5)# label="Mean Precipitation (mm/day)",                  
+        cbar.set_label('Mean Precipitation (mm/day)',size='xx-small')
     else:
         plot_data = np.squeeze(var_subset.isel(time=time_s))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
         if x_size<y_size:
-            cbar = fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", 
-                         shrink=0.3)
+            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)# label="Relative humidity (%)",                     
         else:
-            cbar = fig.colorbar(s_plot, ax=ax3, label="Relative humidity (%)", 
-                         shrink=0.5)
+            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="Relative humidity (%)",                  
+        cbar.set_label('Relative humidity (%)',size='xx-small')
     
     cbar.ax.tick_params(labelsize='xx-small')
 
     ax3.set_title(calendar.month_name[time_s][:3])
-    ax3.set_xlabel('Longitude')
-    ax3.set_ylabel('Latitude')
+    ax3.set_xlabel('Longitude',size='small')
+    ax3.set_ylabel('Latitude',size='small')
 
     ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
