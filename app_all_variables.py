@@ -278,6 +278,7 @@ def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
     ax1.set_yticks(speed_loc.level.values[::2])
     ax1.set_yticklabels(speed_loc.level.values[::2],size='x-small')
     ax1.invert_yaxis()
+    ax1.set_title('Month: ',calendar.month_name[mon])
     #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
     #           u_var.values[mon,:],v_var.values[mon,:])
     st.pyplot(fig)
@@ -296,6 +297,7 @@ def plot_vertical_rh(var, mon): #var has dim's level and month
     ax1.set_yticks(var.level.values[::2])
     ax1.set_yticklabels(var.level.values[::2],size='x-small')
     ax1.invert_yaxis()
+    ax1.set_title('Month: ',calendar.month_name[mon])
     #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
     #           u_var.values[mon,:],v_var.values[mon,:])
     st.pyplot(fig)
@@ -394,7 +396,7 @@ if var_type == 'Wind':
         mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
         ds_u_loc = ds_u['uwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
         ds_v_loc = ds_v['vwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
-        plot_vertical_wind(ds_u_loc,ds_v_loc,mon_sel)
+        plot_vertical_wind(ds_u_loc,ds_v_loc,mon_sel-1)
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
@@ -449,5 +451,5 @@ else:
         lat_loc, lon_loc = user_input_loc(lat,lon)
         mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
-        plot_vertical_rh(rh_loc,mon_sel)  
+        plot_vertical_rh(rh_loc,mon_sel-1)  
 # %%
