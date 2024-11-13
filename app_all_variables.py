@@ -274,6 +274,15 @@ def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
     #           u_var.values[mon,:],v_var.values[mon,:])
     st.pyplot(fig)
 #%% [markdown]
+# Plotting vertical wind profile
+def plot_vertical_rh(var, mon): #var has dim's level and month
+    fig, ax1 = plt.subplots(figsize=(6,12))
+    ax1.plot(var.values[mon,:],var.level.values)
+    ax1.invert_yaxis()
+    #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
+    #           u_var.values[mon,:],v_var.values[mon,:])
+    st.pyplot(fig)
+#%% [markdown]
 # Function to covert 0 360 to -180 to 180
 def convert_180_180(ds_var):
     ds_var.coords['lon'] = (ds_var.coords['lon'] + 179.0625) % 358.125 - 179.0625
@@ -410,10 +419,16 @@ else:
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
 
         plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel)
-    else:
+    elif plot_type == 'Time Series':
         st.header("Time series plot")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
-        plot_time_series2(rh_loc.sel(level=level_sel))  
+        plot_time_series2(rh_loc.sel(level=level_sel))
+    elif plot_type == 'Vertical Profile': 
+        st.header("Relative Humidity Vertical Profile")
+        lat_loc, lon_loc = user_input_loc(lat,lon)
+        mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
+        rh_loc = ds_rh['rhum'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
+        plot_vertical_wind(rh_loc,mon_sel)  
 # %%
