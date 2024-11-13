@@ -316,10 +316,10 @@ if var_type == 'Wind':
         
         ds_u_subset = ds_u['uwnd'].sel(lat=slice(lat_max, lat_min), 
                                        lon=slice(lon_min, lon_max),
-                                       level=level_sel, method='nearest')
+                                       level=level_sel)
         ds_v_subset = ds_v['vwnd'].sel(lat=slice(lat_max, lat_min), 
                                        lon=slice(lon_min, lon_max),
-                                       level=level_sel, method='nearest')
+                                       level=level_sel)
         plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_u_subset[time_sel-1,:,:], 
                           lat_min, lat_max, lon_min, lon_max,time_sel)
 
