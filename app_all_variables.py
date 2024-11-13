@@ -267,7 +267,7 @@ def plot_time_series2(var):
 def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
     speed_loc,_ = calculate_wind(u_var,v_var)
     #speed_loc.reindex(level=list(reversed(speed_loc.level)))
-    fig, ax1 = plt.subplots(figsize=(6,12))
+    fig, ax1 = plt.subplots(figsize=(3,6))
     ax1.plot(speed_loc.values[mon,:],speed_loc.level.values)
     ax1.invert_yaxis()
     ax1.set_xlabel('Wind Speed (m/s)',size='x-small')
@@ -278,7 +278,7 @@ def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
 #%% [markdown]
 # Plotting vertical wind profile
 def plot_vertical_rh(var, mon): #var has dim's level and month
-    fig, ax1 = plt.subplots(figsize=(6,12))
+    fig, ax1 = plt.subplots(figsize=(3,6))
     ax1.plot(var.values[mon,:],var.level.values)
     ax1.invert_yaxis()
     ax1.set_xlabel('Relative Humidity (%)',size='x-small')
