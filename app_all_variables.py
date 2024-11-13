@@ -102,10 +102,10 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
               ds_u[::alt_num,::alt_num], 
               ds_v[::alt_num,::alt_num],pivot='mid', units='inches', alpha=0.6)
     if ds_u.level.values<800:
-        qk = ax.quiverkey(Q, 0.7, 0.9, 15, r'$15 \frac{m}{s}$', labelpos='E',
+        qk = ax.quiverkey(Q, 0.8, 0.9, 15, r'$15 \frac{m}{s}$', labelpos='E',
                    coordinates='figure')
     else:
-        qk = ax.quiverkey(Q, 0.7, 0.9, 5, r'$5 \frac{m}{s}$', labelpos='E',
+        qk = ax.quiverkey(Q, 0.8, 0.9, 5, r'$5 \frac{m}{s}$', labelpos='E',
                    coordinates='figure')
     ax.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
