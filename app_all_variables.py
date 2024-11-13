@@ -17,6 +17,7 @@ from windrose import WindroseAxes
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import calendar
+import cmcrameri.cm as cmc
 #%% [markdown] 
 ## Load wind data from NetCDF
 @st.cache_data
@@ -97,7 +98,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     ax.add_feature(cfeature.COASTLINE)
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
-    speed_plot = ax.contourf(lons, lats, speed_mean, cmap='viridis', extend='both')
+    speed_plot = ax.contourf(lons, lats, speed_mean, cmap=cmc.cm.batlowW_r, extend='both')
     if x_size<y_size:
         cbar = fig.colorbar(speed_plot, ax=ax,shrink=0.3)# label="Wind Speed (m/s)",
     else:
@@ -154,7 +155,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     
     if var_subset.var_desc=='Air temperature':
         plot_data = np.squeeze(var_subset.isel(time=time_s))-273.15
-        s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
+        s_plot = ax3.contourf(lons,lats,plot_data,cmap=cmc.vik, extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
         else:
@@ -163,7 +164,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s))
-        s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
+        s_plot = ax3.contourf(lons,lats,plot_data,cmap=cmc.cm.batlowW_r, extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="Mean Precipitation (mm/day)",                      
         else:
@@ -171,7 +172,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         cbar.set_label('Mean Precipitation (mm/day)',size='xx-small')
     else:
         plot_data = np.squeeze(var_subset.isel(time=time_s))
-        s_plot = ax3.contourf(lons,lats,plot_data,cmap='viridis', extend='both')
+        s_plot = ax3.contourf(lons,lats,plot_data,cmap=cmc.cm.batlowW_r, extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)# label="Relative humidity (%)",                     
         else:
