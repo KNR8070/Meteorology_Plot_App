@@ -101,12 +101,12 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
         fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.3)
     else:
         fig.colorbar(speed_plot, ax=ax, label="Wind Speed (m/s)",shrink=0.5)
-    if (lon_max-lon_min)>60 and (lon_max-lon_min)<200:
+    if (lon_max-lon_min)<60:
+        alt_num = 1
+    elif (lon_max-lon_min)>60 and (lon_max-lon_min)<200:
         alt_num = 2
     elif (lon_max-lon_min)>200:
         alt_num = 4
-    else:
-        alt_num = 1
     Q = ax.quiver(lons[::alt_num,::alt_num], 
               lats[::alt_num,::alt_num], 
               ds_u[::alt_num,::alt_num], 
