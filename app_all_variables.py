@@ -275,8 +275,8 @@ def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
                                np.floor(speed_loc.values.max()),5,endpoint=True))
     ax1.set_xticklabels(np.linspace(np.floor(speed_loc.values.min()),
                                np.floor(speed_loc.values.max()),5,endpoint=True),size='x-small')
-    ax1.set_yticks(speed_loc.level.values)
-    ax1.set_yticklabels(speed_loc.level.values,size='x-small')
+    ax1.set_yticks(speed_loc.level.values[::2])
+    ax1.set_yticklabels(speed_loc.level.values[::2],size='x-small')
     ax1.invert_yaxis()
     #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
     #           u_var.values[mon,:],v_var.values[mon,:])
@@ -293,8 +293,8 @@ def plot_vertical_rh(var, mon): #var has dim's level and month
     ax1.set_xticklabels(np.linspace(np.floor(var.values.min()),
                                np.floor(var.values.max()),5,endpoint=True),
                                size='x-small')
-    ax1.set_yticks(var.level.values)
-    ax1.set_yticklabels(var.level.values,size='x-small')
+    ax1.set_yticks(var.level.values[::2])
+    ax1.set_yticklabels(var.level.values[::2],size='x-small')
     ax1.invert_yaxis()
     #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
     #           u_var.values[mon,:],v_var.values[mon,:])
