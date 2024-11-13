@@ -211,7 +211,7 @@ def plot_time_series(speed,direction):
                   ' and Longitude = '+str(speed_loc.lon.values)+
                   '  Level:'+str(speed.level.values)+
                   ' '+speed.level.GRIB_name)
-    ax1.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax1.transAxes)
+    ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],fontsize=6,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 ##  Time Series Plot
