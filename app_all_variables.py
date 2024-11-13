@@ -60,8 +60,8 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
     ax.set_legend(title="Wind Speed (m/s)",loc='best')
-    ax.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
-            fontsize=4,transform=ax.transAxes)
+    ax.text(0.7,-0.0,'Data Source: '+ds_temp.attrs['source'],
+            fontsize=6,transform=ax.transAxes)
     st.pyplot()  
 #%% [markdown]
 # calculating figsize for spatial plots
