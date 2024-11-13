@@ -59,7 +59,7 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     # if plt.fignum_exists(fig):
     #     fig=fig
     # else:
-    fig_ws = plt.figure(figsize=(6, 6))
+    fig_ws = plt.figure(figsize=(4, 4))
     ax = WindroseAxes.from_ax()
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
