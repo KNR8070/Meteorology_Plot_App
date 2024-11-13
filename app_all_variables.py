@@ -167,7 +167,12 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
 
     ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
     ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-    ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax3.transAxes)
+    if x_size>y_size:
+        ax3.text(0.7,-0.4,'Data Source: '+ds_temp.attrs['source'],
+                 fontsize=4,transform=ax3.transAxes)
+    else:
+        ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],
+                 fontsize=4,transform=ax3.transAxes)
     st.pyplot(fig)   
 #%% [markdown] 
 # Function to plot wind speed and direction time series
