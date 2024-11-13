@@ -179,12 +179,20 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
 
-    ax3.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
-    ax3.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-    ax3.set_xticklabels(np.linspace(lon_min,lon_max,num=5,endpoint=True),
-                        size='xx-small')
-    ax3.set_yticklabels(np.linspace(lat_min,lat_max,num=5,endpoint=True),
-                        size='xx-small')
+    ax3.set_xticks(np.linspace(var_subset.lon.values.min(),#lon_min,
+                               var_subset.lon.values.max(),#lon_max,
+                               num=5,endpoint=True))
+    ax3.set_yticks(np.linspace(var_subset.lat.values.min(),#lat_min,
+                               var_subset.lat.values.max(),#lat_max,
+                               num=5,endpoint=True))
+    ax3.set_xticklabels(np.linspace(var_subset.lon.values.min(),#lon_min,
+                                    var_subset.lon.values.max(),#lon_max,
+                                    num=5,endpoint=True),
+                                    size='xx-small')
+    ax3.set_yticklabels(np.linspace(var_subset.lon.values.min(),#lon_min,
+                                    var_subset.lon.values.max(),#lon_max,
+                                    num=5,endpoint=True),
+                                    size='xx-small')
     if x_size<y_size:
         ax3.text(0.7,-0.4,'Data Source: '+ds_temp.attrs['source'],
                  fontsize=4,transform=ax3.transAxes)
