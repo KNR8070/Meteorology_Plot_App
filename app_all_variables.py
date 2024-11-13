@@ -270,6 +270,8 @@ def plot_vertical_wind(u_var, v_var, mon): #var has dim's level and month
     fig, ax1 = plt.subplots(figsize=(6,12))
     ax1.plot(speed_loc.values[mon,:],speed_loc.level.values)
     ax1.invert_yaxis()
+    ax1.set_xlabel('Wind Speed (m/s)',size='x-small')
+    ax1.set_ylabel('Vertical level (hPa)', size='x-small')
     #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
     #           u_var.values[mon,:],v_var.values[mon,:])
     st.pyplot(fig)
@@ -279,6 +281,8 @@ def plot_vertical_rh(var, mon): #var has dim's level and month
     fig, ax1 = plt.subplots(figsize=(6,12))
     ax1.plot(var.values[mon,:],var.level.values)
     ax1.invert_yaxis()
+    ax1.set_xlabel('Relative Humidity (%)',size='x-small')
+    ax1.set_ylabel('Vertical level (hPa)', size='x-small')
     #ax1.quiver(u_var.level.values,np.zeros(len(u_var.level.values)),
     #           u_var.values[mon,:],v_var.values[mon,:])
     st.pyplot(fig)
