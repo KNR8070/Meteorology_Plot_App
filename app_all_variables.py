@@ -193,8 +193,8 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
                                     var_subset.lon.values.max(),#lon_max,
                                     num=5,endpoint=True),
                                     size='xx-small')
-    ax3.set_yticklabels(np.linspace(var_subset.lon.values.min(),#lon_min,
-                                    var_subset.lon.values.max(),#lon_max,
+    ax3.set_yticklabels(np.linspace(var_subset.lat.values.min(),#lat_min,
+                                    var_subset.lat.values.max(),#lat_max,
                                     num=5,endpoint=True),
                                     size='xx-small')
     if x_size<y_size:
