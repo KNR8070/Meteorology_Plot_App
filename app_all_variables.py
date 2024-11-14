@@ -184,18 +184,18 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
 
-    ax3.set_xticks(np.linspace(var_subset.lon.values.min(),#lon_min,
-                               var_subset.lon.values.max(),#lon_max,
+    ax3.set_xticks(np.linspace(np.floor(var_subset.lon.values.min()),#lon_min,
+                               np.floor(var_subset.lon.values.max()),#lon_max,
                                num=5,endpoint=True))#format='%2.2f'))
-    ax3.set_yticks(np.linspace(var_subset.lat.values.min(),#lat_min,
-                               var_subset.lat.values.max(),#lat_max,
+    ax3.set_yticks(np.linspace(np.floor(var_subset.lat.values.min()),#lat_min,
+                               np.floor(var_subset.lat.values.max()),#lat_max,
                                num=5,endpoint=True))#,format='%2.2f'))
-    ax3.set_xticklabels(np.linspace(var_subset.lon.values.min(),#lon_min,
-                                    var_subset.lon.values.max(),#lon_max,
+    ax3.set_xticklabels(np.linspace(np.floor(var_subset.lon.values.min()),#lon_min,
+                                    np.floor(var_subset.lon.values.max()),#lon_max,
                                     num=5,endpoint=True),#format='%2.2f'),
                                     size='xx-small')
-    ax3.set_yticklabels(np.linspace(var_subset.lat.values.min(),#lat_min,
-                                    var_subset.lat.values.max(),#lat_max,
+    ax3.set_yticklabels(np.linspace(np.floor(var_subset.lat.values.min()),#lat_min,
+                                    np.floor(var_subset.lat.values.max()),#lat_max,
                                     num=5,endpoint=True),#format='%2.2f'),
                                     size='xx-small')
     if x_size<y_size:
@@ -312,17 +312,17 @@ def convert_180_180(ds_var):
 def user_input_box(lat,lon):
     lat_min = st.sidebar.number_input("Enter Lat. min.", min_value=float(str(lat.values.min())), 
                                     max_value=float(str(lat.values.max())), 
-                                    value=-80.00,step=0.01, format='%2.2f')
+                                    value=-84.00,step=0.01, format='%2.2f')
     lat_max = st.sidebar.number_input("Enter Lat. max.", float(str(lat.values.min())), 
                                     max_value=float(str(lat.values.max())), 
-                                    value=80.00,step=0.01, format='%2.2f',
+                                    value=84.00,step=0.01, format='%2.2f',
                                     placeholder="Must be greater than Lat min.")
     lon_min = st.sidebar.number_input("Enter Lon. min.", min_value=float(str(lon.values.min())), 
                                     max_value=float(str(lon.values.max())), 
-                                    value=-170.00,step=0.01, format='%3.2f')
+                                    value=-174.00,step=0.01, format='%3.2f')
     lon_max = st.sidebar.number_input("Enter Lon. max.", min_value=float(str(lon.values.min())), 
                                     max_value=float(str(lon.values.max())), 
-                                    value=170.00,step=0.01, format='%3.2f',
+                                    value=174.00,step=0.01, format='%3.2f',
                                     placeholder="Must be greater than Lon min.")
     return lat_min, lat_max, lon_min, lon_max
 #%% [markdown]
