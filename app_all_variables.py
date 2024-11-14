@@ -411,8 +411,11 @@ elif var_type == 'Temp_2m':
     else:
         st.header("Time series plot")
         lat_loc, lon_loc = user_input_loc(lat,lon)
-        temp_loc = ds_temp['air'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
-        plot_time_series2(temp_loc.isel(level=0))
+        ds_air = ds_temp['air']
+        lat_idx = (np.abs(lat-lat_loc)).argmin()
+        lon_idx = (np.abs(lon-lon_loc)).argmin()
+        temp_loc = ds_air.isel(level=0,lat=lat_idx,lon=lon_idx)
+        plot_time_series2(temp_loc)
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
