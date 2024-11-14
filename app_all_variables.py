@@ -184,18 +184,18 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
 
-    ax3.set_xticks(np.linspace(np.floor(var_subset.lon.values.min()),#lon_min,
+    ax3.set_xticks(np.linspace(np.floor(var_subset.lon.values.min()-1),#lon_min,
                                np.floor(var_subset.lon.values.max()),#lon_max,
                                num=5,endpoint=True))#format='%2.2f'))
     ax3.set_yticks(np.linspace(np.floor(var_subset.lat.values.min()),#lat_min,
-                               np.floor(var_subset.lat.values.max()),#lat_max,
+                               np.floor(var_subset.lat.values.max()+1),#lat_max,
                                num=5,endpoint=True))#,format='%2.2f'))
-    ax3.set_xticklabels(np.linspace(np.floor(var_subset.lon.values.min()),#lon_min,
+    ax3.set_xticklabels(np.linspace(np.floor(var_subset.lon.values.min()-1),#lon_min,
                                     np.floor(var_subset.lon.values.max()),#lon_max,
                                     num=5,endpoint=True),#format='%2.2f'),
                                     size='xx-small')
     ax3.set_yticklabels(np.linspace(np.floor(var_subset.lat.values.min()),#lat_min,
-                                    np.floor(var_subset.lat.values.max()),#lat_max,
+                                    np.floor(var_subset.lat.values.max()+1),#lat_max,
                                     num=5,endpoint=True),#format='%2.2f'),
                                     size='xx-small')
     if x_size<y_size:
