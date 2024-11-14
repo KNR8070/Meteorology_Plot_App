@@ -330,20 +330,20 @@ def user_input_box(lat,lon):
 def user_input_loc(lat,lon):
     lat_loc = st.sidebar.number_input("Enter Latitude", min_value=float(str(lat.values.min())), 
                                           max_value=float(str(lat.values.max())), 
-                                          value=0.00,step=0.01, format='%2.2f')
+                                          value=16.5,step=0.01, format='%2.2f')
     lon_loc = st.sidebar.number_input("Enter Longitude", min_value=float(str(lon.values.min())), 
                                           max_value=float(str(lon.values.max())), 
-                                          value=0.00,step=0.01, format='%3.2f')
+                                          value=78.5,step=0.01, format='%3.2f')
     return lat_loc, lon_loc
 #%% [markdown] 
 ## Streamlit App
 st.title("Met. Data Visualization App")
-ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(84,-84),lon=slice(-176,176))
-ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(84,-84),lon=slice(-176,176))
-ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(84,-84),lon=slice(-176,176))
-ds_pr = convert_180_180(load_pr_data()).sel(lat=slice(-84,84),lon=slice(-176,176))
+ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
+ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
+ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
+ds_pr = convert_180_180(load_pr_data()).sel(lat=slice(-85,85),lon=slice(-176,176))
 ds_pr.reindex(lat=list(reversed(ds_pr.lat)))
-ds_rh = convert_180_180(load_rh_data()).sel(lat=slice(84,-84),lon=slice(-176,176))
+ds_rh = convert_180_180(load_rh_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 lon = ds_temp['lon']
 lat = ds_temp['lat']
 #%% [markdown]
@@ -411,7 +411,7 @@ elif var_type == 'Temp_2m':
     else:
         st.header("Time series plot")
         lat_loc, lon_loc = user_input_loc(lat,lon)
-        temp_loc = ds_temp['air'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
+        temp_loc = ds_temp['air'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
         plot_time_series2(temp_loc.isel(level=0))
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
