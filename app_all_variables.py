@@ -167,7 +167,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     lons, lats = np.meshgrid(var_subset.lon, var_subset.lat)
     
     if var_subset.var_desc=='Air temperature':
-        plot_data = np.squeeze(var_subset.isel(time=time_s))-273.15
+        plot_data = np.squeeze(var_subset.isel(time=time_s-1))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,cmap=cmc.vik, extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
@@ -176,7 +176,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         cbar.set_label('2m Temperature (degC)',size='xx-small')            
         
     elif var_subset.var_desc=='Precipitation':
-        plot_data = np.squeeze(var_subset.isel(time=time_s))
+        plot_data = np.squeeze(var_subset.isel(time=time_s-1))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap=cmc.batlowW_r, extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="Mean Precipitation (mm/day)",                      
@@ -184,7 +184,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.5)# label="Mean Precipitation (mm/day)",                  
         cbar.set_label('Mean Precipitation (mm/day)',size='xx-small')
     else:
-        plot_data = np.squeeze(var_subset.isel(time=time_s))
+        plot_data = np.squeeze(var_subset.isel(time=time_s-1))
         s_plot = ax3.contourf(lons,lats,plot_data,cmap=cmc.batlowW, extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)# label="Relative humidity (%)",                     
