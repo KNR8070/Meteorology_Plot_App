@@ -94,7 +94,12 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
     fig, ax = plt.subplots(figsize=(x_size,y_size),
                            subplot_kw={'projection': ccrs.PlateCarree()})
-    ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
+    ax.set_extent([speed_mean.lon.values.min(),#lon_min, 
+                   speed_mean.lon.values.max(),#lon_max, 
+                   speed_mean.lat.values.min(),#lat_min, 
+                   speed_mean.lat.values.max(),#lat_max
+                   ], 
+                   crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.COASTLINE)
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
@@ -124,12 +129,20 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     else:
         qk = ax.quiverkey(Q, 0.8, 0.9, 5, r'$5 \frac{m}{s}$', labelpos='E',
                    coordinates='figure')
-    ax.set_xticks(np.linspace(lon_min,lon_max,num=5,endpoint=True))
-    ax.set_yticks(np.linspace(lat_min,lat_max,num=5,endpoint=True))
-    ax.set_xticklabels(np.linspace(lon_min,lon_max,num=5,endpoint=True),
-                       size='xx-small')
-    ax.set_yticklabels(np.linspace(lat_min,lat_max,num=5,endpoint=True),
-                       size='xx-small')
+    ax.set_xticks(np.linspace(speed_mean.lon.values.min(),#lon_min,
+                              speed_mean.lon.values.max(),#lon_max,
+                              num=5,endpoint=True))
+    ax.set_yticks(np.linspace(speed_mean.lat.values.min(),#lon_min,
+                              speed_mean.lat.values.max(),#lon_max,
+                              num=5,endpoint=True))
+    ax.set_xticklabels(np.linspace(speed_mean.lon.values.min(),#lon_min,
+                                   speed_mean.lon.values.max(),#lon_max,
+                                   num=5,endpoint=True),
+                                   size='xx-small')
+    ax.set_yticklabels(np.linspace(speed_mean.lat.values.min(),#lon_min,
+                                   speed_mean.lat.values.max(),#lon_max,
+                                   num=5,endpoint=True),
+                                   size='xx-small')
     ax.set_xlabel('Longitude',size='x-small')
     ax.set_ylabel('Latitude',size='x-small')
     ax.set_title('Month:'+calendar.month_name[time_s][:3]+
@@ -184,18 +197,18 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
 
-    ax3.set_xticks(np.linspace(np.floor(var_subset.lon.values.min()+1),#lon_min,
+    ax3.set_xticks(np.linspace(np.floor(var_subset.lon.values.min()),#lon_min,
                                np.floor(var_subset.lon.values.max()),#lon_max,
                                num=5,endpoint=True))#format='%2.2f'))
     ax3.set_yticks(np.linspace(np.floor(var_subset.lat.values.min()),#lat_min,
-                               np.floor(var_subset.lat.values.max()+1),#lat_max,
+                               np.floor(var_subset.lat.values.max()),#lat_max,
                                num=5,endpoint=True))#,format='%2.2f'))
-    ax3.set_xticklabels(np.linspace(np.floor(var_subset.lon.values.min()+1),#lon_min,
+    ax3.set_xticklabels(np.linspace(np.floor(var_subset.lon.values.min()),#lon_min,
                                     np.floor(var_subset.lon.values.max()),#lon_max,
                                     num=5,endpoint=True),#format='%2.2f'),
                                     size='xx-small')
     ax3.set_yticklabels(np.linspace(np.floor(var_subset.lat.values.min()),#lat_min,
-                                    np.floor(var_subset.lat.values.max()+1),#lat_max,
+                                    np.floor(var_subset.lat.values.max()),#lat_max,
                                     num=5,endpoint=True),#format='%2.2f'),
                                     size='xx-small')
     if x_size<y_size:
