@@ -416,10 +416,11 @@ if var_type == 'Wind':
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
     st.write("2m Temperature can be plotted as spatial plot for a selected region, and monthly time series")
-    st.write("select your choice from the side bar:")
+    st.write("select your choice of plotting from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
-        st.header("Spatial plot")        
+        st.header("Spatial plot")
+        st.write("Default region is shown here. Please select your region of ineterst using latitude and longitude")        
         [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_temp_subset = ds_temp['air'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
@@ -428,6 +429,7 @@ elif var_type == 'Temp_2m':
 
     else:
         st.header("Time series plot")
+        st.write("Default location is shown here. Please select your location of ineterst using latitude and longitude") 
         lat_loc, lon_loc = user_input_loc(lat,lon)
         ds_air = ds_temp['air']
         lat_idx = (np.abs(lat-lat_loc)).argmin()
