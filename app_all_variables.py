@@ -360,7 +360,7 @@ def user_input_loc(lat,lon):
 st.write("Built by: K Narender Reddy", size='x-small')
 st.write("Version 1: November, 2024", size='x-small')
 st.title("Met. Data Visualization")
-st.write("All data shown here is the Climatology data (1991-2021)")
+st.write("_NOTE: All data shown here is the Climatology data (1991-2021)_")
 st.logo('icon.png',size='large')
 #st.logo('My_page.png', location='right')
 ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
