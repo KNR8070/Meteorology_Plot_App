@@ -351,6 +351,7 @@ def user_input_loc(lat,lon):
 #%% [markdown] 
 ## Streamlit App
 st.title("Met. Data Visualization")
+st.write("All data shown here is the Climatology data (1991-2021)")
 st.logo('icon.png',size='medium')
 ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
@@ -424,7 +425,7 @@ elif var_type == 'Temp_2m':
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
-        st.write("Default region is shown here. Please select your region of intrest using latitude and longitude")        
+        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")        
         [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_temp_subset = ds_temp['air'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
@@ -433,7 +434,7 @@ elif var_type == 'Temp_2m':
 
     else:
         st.header("Time series plot")
-        st.write("Default location is shown here. Please select your location of intrest using latitude and longitude") 
+        st.write("Default location is shown here. Please select your location of interest using latitude and longitude") 
         lat_loc, lon_loc = user_input_loc(lat,lon)
         ds_air = ds_temp['air']
         lat_idx = (np.abs(lat-lat_loc)).argmin()
