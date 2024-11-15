@@ -352,11 +352,11 @@ def user_input_loc(lat,lon):
 ## Streamlit App
 #col1, col2 = st.columns(2, gap='small', vertical_alignment='center')
 #with col1:
-st.image("My_page_enhanced.png", width=150)
+#st.image("My_page_enhanced.png", width=150)
 #with col2:
 #    st.title("K Narender Reddy", anchor='False')
 #    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
-st.button('Go to Met. Visualisation')
+#st.button('Go to Met. Visualisation', )
 st.title("Met. Data Visualization")
 st.write("All data shown here is the Climatology data (1991-2021)")
 st.logo('icon.png',size='large')
