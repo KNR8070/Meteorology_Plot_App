@@ -376,6 +376,7 @@ lat = ds_temp['lat']
 var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
+    st.write("Viewing Wind data")
     st.write('''
              Wind data can be plotted as: 
              (1) windrose at a location and pressure level, 
