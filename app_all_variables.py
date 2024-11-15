@@ -357,6 +357,8 @@ def user_input_loc(lat,lon):
 #    st.title("K Narender Reddy", anchor='False')
 #    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
 #st.button('Go to Met. Visualisation', )
+st.write("Built by: K Narender Reddy", size='small')
+st.write("Version 1: November, 2024", size='small')
 st.title("Met. Data Visualization")
 st.write("All data shown here is the Climatology data (1991-2021)")
 st.logo('icon.png',size='large')
