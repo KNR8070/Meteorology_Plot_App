@@ -439,8 +439,8 @@ if var_type == 'Wind':
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
     st.markdown('''2m Temperature can be viewed as:  
-                 (1) spatial plot for a selected region, and  
-                 (2) monthly time series
+                 (1) spatial plot for a selected region  
+                 (2) monthly time series at a location
                  ''')
     st.write("select your choice of plot from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
@@ -464,7 +464,10 @@ elif var_type == 'Temp_2m':
         plot_time_series2(temp_loc)
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
-    st.write("Monthly mean rainfall can be plotted as:\n (1) spatial plot for a selected region,\n (2) a monthly time series at a loctaion")
+    st.markdown('''Monthly mean rainfall can be viewed as:  
+                (1) spatial plot for a selected region  
+                (2) a monthly time series at a loctaion
+                ''')
     st.write("select your choice of plot from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
@@ -482,6 +485,11 @@ elif var_type == 'Precipitation':
         plot_time_series2(pr_loc)
 ######################################## Relative Humidity
 else:
+    st.markdown('''Relative Humidity can be viewed as:  
+                 (1) spatial plot for a selected region  
+                 (2) monthly time series at a location  
+                 (3) vertical profile at a location
+                 ''')
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", 
                                                           "Time Series",
                                                           "Vertical Profile"))
