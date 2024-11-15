@@ -359,7 +359,8 @@ def user_input_loc(lat,lon):
 #st.button('Go to Met. Visualisation', )
 st.markdown('''**Details of author**  
         Built by: K Narender Reddy   
-        Email :email: : knreddyiitd@gmail.com   
+        Email :email: : knreddyiitd@gmail.com  
+        Web Page :globe_with_meridians: : https://knreddy.online 
         Version 1: November, 2024''')
 st.title("Met. Data Visualization")
 st.write("_NOTE: All data shown here is the Climatology data (1991-2021)_")
