@@ -350,12 +350,12 @@ def user_input_loc(lat,lon):
     return lat_loc, lon_loc
 #%% [markdown] 
 ## Streamlit App
-col1, col2 = st.columns(2, gap='small', vertical_alignment='center')
-with col1:
-    st.image("My_page.png", width=230)
-with col2:
-    st.title("K Narender Reddy", anchor='False')
-    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
+#col1, col2 = st.columns(2, gap='small', vertical_alignment='center')
+#with col1:
+st.image("My_page.png", width=150)
+#with col2:
+#    st.title("K Narender Reddy", anchor='False')
+#    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
 
 st.title("Met. Data Visualization")
 st.write("All data shown here is the Climatology data (1991-2021)")
