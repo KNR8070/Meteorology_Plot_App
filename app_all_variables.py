@@ -365,8 +365,8 @@ lat = ds_temp['lat']
 var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
-    st.write("Wind data can be poltted as windrose, wind vectors, monthly time series of speed and direction, and vertical rpofile at a location")
-    st.write("select you choice from the side bar:")
+    st.write("Wind data can be plotted as windrose, wind vectors, monthly time series of speed and direction, and vertical profile at a location")
+    st.write("select your choice from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
                                                           "Spatial Wind Vectors", 
                                                           "Time Series",
@@ -415,6 +415,8 @@ if var_type == 'Wind':
         plot_vertical_wind(ds_u_loc,ds_v_loc,mon_sel-1)
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
+    st.write("2m Temperature can be plotted as spatial plot for a selected region, and monthly time series")
+    st.write("select your choice from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")        
@@ -434,6 +436,8 @@ elif var_type == 'Temp_2m':
         plot_time_series2(temp_loc)
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
+    st.write("Moonthly mean rainfall can be plotted as:\n (1) spatial plot for a selected region,\n (2) a monthly time series at a loctaion")
+    st.write("select your choice from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
