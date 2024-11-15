@@ -350,7 +350,7 @@ def user_input_loc(lat,lon):
     return lat_loc, lon_loc
 #%% [markdown] 
 ## Streamlit App
-st.title("Met. Data Visualization App")
+st.title("Met. Data Visualization")
 ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
@@ -364,6 +364,8 @@ lat = ds_temp['lat']
 var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
+    st.write("Wind data can be poltted as windrose, wind vectors, monthly time series of speed and direction, and vertical rpofile at a location")
+    st.write("select you choice from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
                                                           "Spatial Wind Vectors", 
                                                           "Time Series",
