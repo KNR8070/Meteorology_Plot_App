@@ -351,7 +351,7 @@ def user_input_loc(lat,lon):
 #%% [markdown] 
 ## Streamlit App
 st.title("Met. Data Visualization")
-st.logo('icon.png',size='small')
+st.logo('icon.png',size='medium')
 ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
