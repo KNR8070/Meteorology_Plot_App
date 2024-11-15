@@ -379,11 +379,10 @@ var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Prec
 
 if var_type == 'Wind':
     st.markdown("*Viewing Wind data*")
-    st.markdown('''
-        **Wind data can be viewed as**:
-        (1) windrose at a location and pressure level, 
-        (2) wind vectors for a selected region, 
-        (3) monthly time series of speed and direction, and 
+    st.markdown('''**Wind data can be viewed as**:  
+        (1) windrose at a location and pressure level,  
+        (2) wind vectors for a selected region,  
+        (3) monthly time series of speed and direction, and  
         (4) vertical profile at a location
              ''')
     st.write("select your choice of plot from the side bar:")
