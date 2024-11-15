@@ -362,8 +362,7 @@ lon = ds_temp['lon']
 lat = ds_temp['lat']
 #%% [markdown]
 # User Inputs  
-var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"),
-                                initial_sidebar_state='collapsed')
+var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
     st.write("Wind data can be poltted as windrose, wind vectors, monthly time series of speed and direction, and vertical rpofile at a location")
