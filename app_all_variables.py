@@ -357,8 +357,8 @@ def user_input_loc(lat,lon):
 #    st.title("K Narender Reddy", anchor='False')
 #    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
 #st.button('Go to Met. Visualisation', )
-st.text('Details of the author:',
-            '''Built by: K Narender Reddy   
+st.text('''**Details of author**  
+        Built by: K Narender Reddy   
         Email :email: : knreddyiitd@gmail.com   
         Version 1: November, 2024''')
 st.title("Met. Data Visualization")
