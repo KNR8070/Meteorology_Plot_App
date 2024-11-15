@@ -378,11 +378,11 @@ var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Prec
 if var_type == 'Wind':
     st.write("Viewing Wind data")
     st.write('''
-             Wind data can be plotted as: 
-             (1) windrose at a location and pressure level, 
-             (2) wind vectors for a selected region, 
-             (3) monthly time series of speed and direction, and 
-             (4) vertical profile at a location
+        Wind data can be plotted as:
+        (1) windrose at a location and pressure level, 
+        (2) wind vectors for a selected region, 
+        (3) monthly time series of speed and direction, and 
+        (4) vertical profile at a location
              ''')
     st.write("select your choice of plot from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
