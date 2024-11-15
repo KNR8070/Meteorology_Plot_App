@@ -353,6 +353,7 @@ def user_input_loc(lat,lon):
 st.title("Met. Data Visualization")
 st.write("All data shown here is the Climatology data (1991-2021)")
 st.logo('icon.png',size='medium')
+st.logo('My_page.png', location='right')
 ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
