@@ -357,9 +357,10 @@ def user_input_loc(lat,lon):
 #    st.title("K Narender Reddy", anchor='False')
 #    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
 #st.button('Go to Met. Visualisation', )
-st.text("Built by: K Narender Reddy")#, size='x-small')
-st.text("Version 1: November, 2024")#, size='x-small')
-st.text("Email: knreddyiitd@gmail.com")
+st.text_area('Details of the author:'
+            '''Built by: K Narender Reddy   
+               Email :email:: knreddyiitd@gmail.com   
+               Version 1: November, 2024''')
 st.title("Met. Data Visualization")
 st.write("_NOTE: All data shown here is the Climatology data (1991-2021)_")
 st.logo('icon.png',size='large')
@@ -377,9 +378,9 @@ lat = ds_temp['lat']
 var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
-    st.write("_Viewing Wind data_")
+    st.text("_Viewing Wind data_")
     st.text('''
-        Wind data can be plotted as:/n
+        Wind data can be viewed as:
         (1) windrose at a location and pressure level, 
         (2) wind vectors for a selected region, 
         (3) monthly time series of speed and direction, and 
