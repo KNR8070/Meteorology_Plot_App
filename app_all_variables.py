@@ -350,7 +350,7 @@ def user_input_loc(lat,lon):
     return lat_loc, lon_loc
 #%% [markdown] 
 ## Streamlit App
-col1, col2 = st.columns(2, gap='small', vertical vertical_alignment='center')
+col1, col2 = st.columns(2, gap='small', vertical_alignment='center')
 with col1:
     st.image("My_page.png", width=230)
 with col2:
