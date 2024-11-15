@@ -438,7 +438,10 @@ if var_type == 'Wind':
         plot_vertical_wind(ds_u_loc,ds_v_loc,mon_sel-1)
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
-    st.write("2m Temperature can be plotted as spatial plot for a selected region, and monthly time series")
+    st.markdown('''2m Temperature can be viewed as:  
+                 (1) spatial plot for a selected region, and  
+                 (2) monthly time series
+                 ''')
     st.write("select your choice of plot from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
