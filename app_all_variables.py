@@ -438,7 +438,7 @@ elif var_type == 'Temp_2m':
         plot_time_series2(temp_loc)
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
-    st.write("Moonthly mean rainfall can be plotted as:\n (1) spatial plot for a selected region,\n (2) a monthly time series at a loctaion")
+    st.write("Monthly mean rainfall can be plotted as:\n (1) spatial plot for a selected region,\n (2) a monthly time series at a loctaion")
     st.write("select your choice from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
