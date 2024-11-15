@@ -366,13 +366,14 @@ var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Prec
 
 if var_type == 'Wind':
     st.write("Wind data can be plotted as windrose, wind vectors, monthly time series of speed and direction, and vertical profile at a location")
-    st.write("select your choice from the side bar:")
+    st.write("select your choice of plot from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
                                                           "Spatial Wind Vectors", 
                                                           "Time Series",
                                                           "Vertical Profile"))
     if plot_type == "Wind Rose":
         st.header("Wind Rose")
+        st.write("Default location, and pressure level is shown here. Please select your region of interest using latitude and longitude and pressure level")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
 
@@ -384,7 +385,8 @@ if var_type == 'Wind':
                        speed_loc.lat.values,speed_loc.lon.values)
 
     elif plot_type == "Spatial Wind Vectors":
-        st.header("Spatial Wind Vectors")        
+        st.header("Spatial Wind Vectors")    
+        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")    
         [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
@@ -401,6 +403,7 @@ if var_type == 'Wind':
 
     elif plot_type == "Time Series":
         st.header("Wind Speed Time Series")
+        st.write("Default location and pressure level is shown here. Please select your location of interest using latitude and longitude, and the pressure level")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         speed_loc, direction_loc = calculate_wind(ds_u['uwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'),
@@ -408,6 +411,7 @@ if var_type == 'Wind':
         plot_time_series(speed_loc.sel(level=level_sel),direction_loc.sel(level=level_sel))
     elif plot_type == 'Vertical Profile': 
         st.header("Wind Speed Vertical Profile")
+        st.write("Default location and month is shown here. Please select your location of interest using latitude and longitude, and desired month")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
         ds_u_loc = ds_u['uwnd'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
@@ -416,11 +420,11 @@ if var_type == 'Wind':
 ########################### 2m Temperature
 elif var_type == 'Temp_2m':
     st.write("2m Temperature can be plotted as spatial plot for a selected region, and monthly time series")
-    st.write("select your choice of plotting from the side bar:")
+    st.write("select your choice of plot from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
-        st.write("Default region is shown here. Please select your region of ineterst using latitude and longitude")        
+        st.write("Default region is shown here. Please select your region of intrest using latitude and longitude")        
         [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_temp_subset = ds_temp['air'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
@@ -429,7 +433,7 @@ elif var_type == 'Temp_2m':
 
     else:
         st.header("Time series plot")
-        st.write("Default location is shown here. Please select your location of ineterst using latitude and longitude") 
+        st.write("Default location is shown here. Please select your location of intrest using latitude and longitude") 
         lat_loc, lon_loc = user_input_loc(lat,lon)
         ds_air = ds_temp['air']
         lat_idx = (np.abs(lat-lat_loc)).argmin()
@@ -439,16 +443,18 @@ elif var_type == 'Temp_2m':
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
     st.write("Monthly mean rainfall can be plotted as:\n (1) spatial plot for a selected region,\n (2) a monthly time series at a loctaion")
-    st.write("select your choice from the side bar:")
+    st.write("select your choice of plot from the side bar:")
     plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
+        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")
         [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)        
         ds_pr_subset = ds_pr['precip'].sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel)
     else:
         st.header("Time series plot")
+        st.write("Default location is shown here. Please select your location of interest using latitude and longitude") 
         lat_loc, lon_loc = user_input_loc(lat,lon)
         pr_loc = ds_pr['precip'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         plot_time_series2(pr_loc)
@@ -458,7 +464,8 @@ else:
                                                           "Time Series",
                                                           "Vertical Profile"))
     if plot_type == 'Spatial plot':
-        st.header("Spatial plot")        
+        st.header("Spatial plot")   
+        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")     
         [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_rh_subset = ds_rh['rhum'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
@@ -467,12 +474,14 @@ else:
         plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel)
     elif plot_type == 'Time Series':
         st.header("Time series plot")
+        st.write("Default location and pressure level is shown here. Please select your location of interest using latitude and longitude, and the pressure level") 
         lat_loc, lon_loc = user_input_loc(lat,lon)
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
         plot_time_series2(rh_loc.sel(level=level_sel))
-    elif plot_type == 'Vertical Profile': 
+    elif plot_type == 'Vertical Profile':
         st.header("Relative Humidity Vertical Profile")
+        st.write("Default location and month is shown here. Please select your location of interest using latitude and longitude, and desired month")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
