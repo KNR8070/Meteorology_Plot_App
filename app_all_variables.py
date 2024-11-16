@@ -400,7 +400,7 @@ if var_type == 'Wind':
                                 "Spatial Wind Vectors", 
                                 "Time Series",
                                 "Vertical Profile"), orientation="horizontal",
-                                icons=['','','',''])
+                                icons=['test','test','test','test'])
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
     #                                                      "Spatial Wind Vectors", 
     #                                                      "Time Series",
@@ -461,7 +461,7 @@ elif var_type == 'Temp_2m':
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     plot_type = option_menu("", ("Spatial plot", 
                                 "Time Series"), orientation="horizontal",
-                                icons=['',''])
+                                icons=['test','test'])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")        
@@ -490,7 +490,7 @@ elif var_type == 'Precipitation':
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     plot_type = option_menu("", ("Spatial plot", 
                                 "Time Series"), orientation="horizontal",
-                                icons=['',''])
+                                icons=['test','test'])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")
@@ -517,7 +517,7 @@ else: #Relative Humidity
     plot_type = option_menu("", ("Spatial plot", 
                                 "Time Series",
                                 "Vertical Profile"), orientation="horizontal",
-                                icons=['','',''])
+                                icons=['test','test','test'])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")   
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")     
