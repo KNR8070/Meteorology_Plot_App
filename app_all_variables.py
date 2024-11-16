@@ -381,7 +381,8 @@ var_type = option_menu("Choose the variable", ("Temp_2m",
                                                 "Wind", 
                                                 "Precipitation",
                                                 "Relative Humidity"),
-                                                default_index=0, orientation="horizontal")#,
+                                                menu_icon="cast",default_index=0, 
+                                                orientation="horizontal")#,
                         #icons=['house', 'cloud-upload', "list-task", 'gear'], 
                         #menu_icon="cast", default_index=0, orientation="horizontal")
 #var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
@@ -395,10 +396,14 @@ if var_type == 'Wind':
         (4) vertical profile at a location
              ''')
     st.write("select your choice of plot from the side bar:")
-    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
-                                                          "Spatial Wind Vectors", 
-                                                          "Time Series",
-                                                          "Vertical Profile"))
+    plot_type = option_menu("", ("Wind Rose",
+                                "Spatial Wind Vectors", 
+                                "Time Series",
+                                "Vertical Profile"))
+    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
+    #                                                      "Spatial Wind Vectors", 
+    #                                                      "Time Series",
+    #                                                      "Vertical Profile"))
     if plot_type == "Wind Rose":
         st.header("Wind Rose")
         st.write("Default location, and pressure level is shown here. Please select your region of interest using latitude and longitude and pressure level")
