@@ -381,7 +381,7 @@ var_type = option_menu("Choose the variable", ("Temp_2m",
                                                 "Wind", 
                                                 "Precipitation",
                                                 "Relative Humidity"),
-                                                menu_icon="cast",default_index=0, 
+                                                menu_icon="",default_index=0, 
                                                 orientation="horizontal",
                         icons=['thermometer', 'cyclone', "cloud", 'droplet'],) 
                         #menu_icon="cast", default_index=0, orientation="horizontal")
@@ -399,7 +399,8 @@ if var_type == 'Wind':
     plot_type = option_menu("", ("Wind Rose",
                                 "Spatial Wind Vectors", 
                                 "Time Series",
-                                "Vertical Profile"), orientation="horizontal")
+                                "Vertical Profile"), orientation="horizontal",
+                                icons=['','','',''])
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
     #                                                      "Spatial Wind Vectors", 
     #                                                      "Time Series",
@@ -460,7 +461,7 @@ elif var_type == 'Temp_2m':
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     plot_type = option_menu("", ("Spatial plot", 
                                 "Time Series"), orientation="horizontal",
-                                icons=['world_map',''])
+                                icons=['',''])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")        
@@ -488,7 +489,8 @@ elif var_type == 'Precipitation':
     st.write("select your choice of plot from the side bar:")
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     plot_type = option_menu("", ("Spatial plot", 
-                                "Time Series"), orientation="horizontal")
+                                "Time Series"), orientation="horizontal",
+                                icons=['',''])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")
@@ -514,7 +516,8 @@ else:
     #                                                      "Vertical Profile"))
     plot_type = option_menu("", ("Spatial plot", 
                                 "Time Series",
-                                "Vertical Profile"), orientation="horizontal")
+                                "Vertical Profile"), orientation="horizontal",
+                                icons=['','',''])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")   
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")     
