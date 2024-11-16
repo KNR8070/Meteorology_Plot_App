@@ -382,8 +382,8 @@ var_type = option_menu("Choose the variable", ("Temp_2m",
                                                 "Precipitation",
                                                 "Relative Humidity"),
                                                 menu_icon="cast",default_index=0, 
-                                                orientation="horizontal")#,
-                        #icons=['house', 'cloud-upload', "list-task", 'gear'], 
+                                                orientation="horizontal",
+                        icons=['thermometer', 'fog', "rain_cloud", 'droplet'],) 
                         #menu_icon="cast", default_index=0, orientation="horizontal")
 #var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
