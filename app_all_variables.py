@@ -381,7 +381,7 @@ var_type = option_menu("Choose the variable", ("Temp_2m",
                                                 "Wind", 
                                                 "Precipitation",
                                                 "Relative Humidity"),
-                                                menu_icon="",default_index=0, 
+                                                menu_icon="None",default_index=0, 
                                                 orientation="horizontal",
                         icons=['thermometer', 'cyclone', "cloud", 'droplet'],) 
                         #menu_icon="cast", default_index=0, orientation="horizontal")
@@ -505,7 +505,7 @@ elif var_type == 'Precipitation':
         pr_loc = ds_pr['precip'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         plot_time_series2(pr_loc)
 ######################################## Relative Humidity
-else:
+else: #Relative Humidity
     st.markdown('''Relative Humidity can be viewed as:  
                  (1) spatial plot for a selected region  
                  (2) monthly time series at a location  
