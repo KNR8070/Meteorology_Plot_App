@@ -459,7 +459,8 @@ elif var_type == 'Temp_2m':
     st.write("select your choice of plot from the side bar:")
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     plot_type = option_menu("", ("Spatial plot", 
-                                "Time Series"), orientation="horizontal")
+                                "Time Series"), orientation="horizontal",
+                                icons=['world_map',''])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")        
