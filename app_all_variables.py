@@ -399,7 +399,7 @@ if var_type == 'Wind':
     plot_type = option_menu("", ("Wind Rose",
                                 "Spatial Wind Vectors", 
                                 "Time Series",
-                                "Vertical Profile"))
+                                "Vertical Profile"), orientation="horizontal")
     #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
     #                                                      "Spatial Wind Vectors", 
     #                                                      "Time Series",
