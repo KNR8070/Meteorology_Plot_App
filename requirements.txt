@@ -4,3 +4,4 @@ matplotlib
 windrose
 cartopy
 cmcrameri
+streamlit-option-menu

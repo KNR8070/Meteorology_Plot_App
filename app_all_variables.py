@@ -18,6 +18,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import calendar
 import cmcrameri.cm as cmc
+from streamlit_option_menu import option_menu
 #%% [markdown] 
 ## Load wind data from NetCDF
 @st.cache_data
@@ -376,7 +377,14 @@ lon = ds_temp['lon']
 lat = ds_temp['lat']
 #%% [markdown]
 # User Inputs  
-var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
+var_type = option_menu("Choose the variable", ("Temp_2m", 
+                                                "Wind", 
+                                                "Precipitation",
+                                                "Relative Humidity"),
+                                                default_index=0, orientation="horizontal")#,
+                        #icons=['house', 'cloud-upload', "list-task", 'gear'], 
+                        #menu_icon="cast", default_index=0, orientation="horizontal")
+#var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 
 if var_type == 'Wind':
     st.markdown("*Viewing Wind data*")
