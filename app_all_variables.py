@@ -457,7 +457,9 @@ elif var_type == 'Temp_2m':
                  (2) monthly time series at a location
                  ''')
     st.write("select your choice of plot from the side bar:")
-    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
+    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
+    plot_type = option_menu("", ("Spatial plot", 
+                                "Time Series"), orientation="horizontal")
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")        
@@ -483,7 +485,9 @@ elif var_type == 'Precipitation':
                 (2) a monthly time series at a loctaion
                 ''')
     st.write("select your choice of plot from the side bar:")
-    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
+    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
+    plot_type = option_menu("", ("Spatial plot", 
+                                "Time Series"), orientation="horizontal")
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")
@@ -504,9 +508,12 @@ else:
                  (2) monthly time series at a location  
                  (3) vertical profile at a location
                  ''')
-    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", 
-                                                          "Time Series",
-                                                          "Vertical Profile"))
+    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", 
+    #                                                      "Time Series",
+    #                                                      "Vertical Profile"))
+    plot_type = option_menu("", ("Spatial plot", 
+                                "Time Series",
+                                "Vertical Profile"), orientation="horizontal")
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")   
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")     
