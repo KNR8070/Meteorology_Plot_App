@@ -363,6 +363,7 @@ st.markdown('''**Details of author**
         Email :email: : knreddyiitd@gmail.com  
         Web Page :globe_with_meridians: : https://knreddy.online  
         Version 1: November, 2024''')
+st.divider()
 st.title("Met. Data Visualization")
 st.write("_NOTE: All data shown here is the Climatology data (1991-2021)_")
 st.logo('icon.png',size='large')
@@ -386,7 +387,7 @@ var_type = option_menu("Choose the variable", ("Temp_2m",
                         icons=['thermometer', 'cyclone', "cloud", 'droplet'],) 
                         #menu_icon="cast", default_index=0, orientation="horizontal")
 #var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
-
+st.divider()
 if var_type == 'Wind':
     st.markdown("*Viewing Wind data*")
     st.markdown('''**Wind data can be viewed as**:  
