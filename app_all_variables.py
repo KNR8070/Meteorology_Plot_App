@@ -219,7 +219,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
                          '  Level:'+str(ds_u.level.values)+
                          ' '+ds_u.level.GRIB_name+' ('+level_in_feet[str(ds_u.level.values)]+')', 
                          size='medium')
-        else:
+    else:
             ax3.set_title('Month:'+calendar.month_name[time_s]+
                          '  Level:'+str(ds_u.level.values)+
                          ' '+ds_u.level.GRIB_name,
