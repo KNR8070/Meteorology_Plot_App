@@ -18,7 +18,6 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import calendar
 import cmcrameri.cm as cmc
-from streamlit_option_menu import option_menu
 #%% [markdown] 
 ## Load wind data from NetCDF
 @st.cache_data
@@ -77,15 +76,15 @@ def calculate_x_y_size(lat_min, lat_max, lon_min, lon_max):
     
     if x_ratio>y_ratio:
         ratio_xy = np.round(x_ratio/y_ratio)
-        x_size = np.round(5)
-        y_size = np.round(7)
+        x_size = np.round(10)
+        y_size = np.round(14)
     elif x_ratio==y_ratio:
-        x_size = np.round(7)
-        y_size = np.round(5)
+        x_size = np.round(14)
+        y_size = np.round(10)
     else:
         ratio_yx = np.round(y_ratio/x_ratio)
-        x_size = np.round(6)
-        y_size = np.round(5)
+        x_size = np.round(12)
+        y_size = np.round(10)
     return x_size, y_size
 #%% [markdown] 
 # Function to plot wind vector plot
@@ -115,10 +114,10 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
 
     if (lon_max-lon_min)<60:
         alt_num = 1
-    elif (lon_max-lon_min)>60 and (lon_max-lon_min)<200:
-        alt_num = 2
+    elif (lon_max-lon_min)>=60 and (lon_max-lon_min)<200:
+        alt_num = 1
     elif (lon_max-lon_min)>200:
-        alt_num = 4
+        alt_num = 2
     Q = ax.quiver(lons[::alt_num,::alt_num], 
               lats[::alt_num,::alt_num], 
               ds_u[::alt_num,::alt_num], 
@@ -130,18 +129,18 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     else:
         qk = ax.quiverkey(Q, 0.8, 0.9, 5, r'$5 \frac{m}{s}$', labelpos='E',
                    coordinates='figure')
-    ax.set_xticks(np.linspace(speed_mean.lon.values.min(),#lon_min,
-                              speed_mean.lon.values.max(),#lon_max,
+    ax.set_xticks(np.linspace(np.round(speed_mean.lon.values.min(),1),#lon_min,
+                              np.round(speed_mean.lon.values.max(),1),#lon_max,
                               num=5,endpoint=True))
-    ax.set_yticks(np.linspace(speed_mean.lat.values.min(),#lon_min,
-                              speed_mean.lat.values.max(),#lon_max,
+    ax.set_yticks(np.linspace(np.round(speed_mean.lat.values.min(),1),#lon_min,
+                              np.round(speed_mean.lat.values.max(),1),#lon_max,
                               num=5,endpoint=True))
-    ax.set_xticklabels(np.linspace(speed_mean.lon.values.min(),#lon_min,
-                                   speed_mean.lon.values.max(),#lon_max,
+    ax.set_xticklabels(np.linspace(np.round(speed_mean.lon.values.min(),1),#lon_min,
+                                   np.round(speed_mean.lon.values.max(),1),#lon_max,
                                    num=5,endpoint=True),
                                    size='xx-small')
-    ax.set_yticklabels(np.linspace(speed_mean.lat.values.min(),#lon_min,
-                                   speed_mean.lat.values.max(),#lon_max,
+    ax.set_yticklabels(np.linspace(np.round(speed_mean.lat.values.min(),1),#lon_min,
+                                   np.round(speed_mean.lat.values.max(),1),#lon_max,
                                    num=5,endpoint=True),
                                    size='xx-small')
     ax.set_xlabel('Longitude',size='x-small')
@@ -169,11 +168,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     
     if var_subset.var_desc=='Air temperature':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))-273.15
-        s_plot = ax3.contourf(lons,lats,plot_data,
-                              cmap=cmc.vik, 
-                              vmin=-30, vamx=30,
-                              levels=np.linspace(-30,30,31)
-                              extend='both')
+        s_plot = ax3.contourf(lons,lats,plot_data,cmap=cmc.vik, extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
         else:
@@ -362,12 +357,6 @@ def user_input_loc(lat,lon):
 #    st.title("K Narender Reddy", anchor='False')
 #    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
 #st.button('Go to Met. Visualisation', )
-st.markdown('''**Details of author**  
-        Built by: K Narender Reddy   
-        Email :email: : knreddyiitd@gmail.com  
-        Web Page :globe_with_meridians: : https://knreddy.online  
-        Version 1: November, 2024''')
-st.write("---")
 st.title("Met. Data Visualization")
 st.write("_NOTE: All data shown here is the Climatology data (1991-2021)_")
 st.logo('icon.png',size='large')
@@ -382,16 +371,8 @@ lon = ds_temp['lon']
 lat = ds_temp['lat']
 #%% [markdown]
 # User Inputs  
-var_type = option_menu("Choose the variable", ("Temp_2m", 
-                                                "Wind", 
-                                                "Precipitation",
-                                                "Relative Humidity"),
-                                                menu_icon="None",#default_index='None', 
-                                                orientation="horizontal",
-                        icons=['thermometer', 'cyclone', "cloud", 'droplet'],) 
-                        #menu_icon="cast", default_index=0, orientation="horizontal")
-#var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
-st.write("---")
+var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
+
 if var_type == 'Wind':
     st.markdown("*Viewing Wind data*")
     st.markdown('''**Wind data can be viewed as**:  
@@ -401,15 +382,10 @@ if var_type == 'Wind':
         (4) vertical profile at a location
              ''')
     st.write("select your choice of plot from the side bar:")
-    plot_type = option_menu("", ("Wind Rose",
-                                "Spatial Wind Vectors", 
-                                "Time Series",
-                                "Vertical Profile"), orientation="horizontal",
-                                icons=['test','test','test','test'])
-    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
-    #                                                      "Spatial Wind Vectors", 
-    #                                                      "Time Series",
-    #                                                      "Vertical Profile"))
+    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Wind Rose",
+                                                          "Spatial Wind Vectors", 
+                                                          "Time Series",
+                                                          "Vertical Profile"))
     if plot_type == "Wind Rose":
         st.header("Wind Rose")
         st.write("Default location, and pressure level is shown here. Please select your region of interest using latitude and longitude and pressure level")
@@ -463,10 +439,7 @@ elif var_type == 'Temp_2m':
                  (2) monthly time series at a location
                  ''')
     st.write("select your choice of plot from the side bar:")
-    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
-    plot_type = option_menu("", ("Spatial plot", 
-                                "Time Series"), orientation="horizontal",
-                                icons=['test','test'])
+    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")        
@@ -492,10 +465,7 @@ elif var_type == 'Precipitation':
                 (2) a monthly time series at a loctaion
                 ''')
     st.write("select your choice of plot from the side bar:")
-    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
-    plot_type = option_menu("", ("Spatial plot", 
-                                "Time Series"), orientation="horizontal",
-                                icons=['test','test'])
+    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", "Time Series"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")
@@ -510,19 +480,15 @@ elif var_type == 'Precipitation':
         pr_loc = ds_pr['precip'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         plot_time_series2(pr_loc)
 ######################################## Relative Humidity
-else: #Relative Humidity
+else:
     st.markdown('''Relative Humidity can be viewed as:  
                  (1) spatial plot for a selected region  
                  (2) monthly time series at a location  
                  (3) vertical profile at a location
                  ''')
-    #plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", 
-    #                                                      "Time Series",
-    #                                                      "Vertical Profile"))
-    plot_type = option_menu("", ("Spatial plot", 
-                                "Time Series",
-                                "Vertical Profile"), orientation="horizontal",
-                                icons=['test','test','test'])
+    plot_type = st.sidebar.selectbox("Choose Plot Type", ("Spatial plot", 
+                                                          "Time Series",
+                                                          "Vertical Profile"))
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")   
         st.write("Default region is shown here. Please select your region of interest using latitude and longitude")     
