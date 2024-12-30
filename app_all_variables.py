@@ -166,7 +166,12 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     ax3.add_feature(cfeature.COASTLINE)   
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(var_subset.lon, var_subset.lat)
-    
+    level_in_feet = {"1000.0": 'Surface',
+                     "925.0": '3000 ft',
+                     "850.0": '5000 ft',
+                     "700.0": '10000 ft',
+                     "500.0": '18000 ft'}
+
     if var_subset.var_desc=='Air temperature':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,
@@ -178,7 +183,10 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
         else:
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="2m Temperature (degC)", 
-        cbar.set_label('2m Temperature (degC)',size='xx-small')            
+        cbar.set_label('2m Temperature (degC)',size='xx-small')
+        ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
+                 '  Level:'+str(var_subset.level.values)+
+                 ' '+var_subset.level.GRIB_name, size='x-small')            
         
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))
@@ -192,6 +200,9 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         else:
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.5)# label="Mean Precipitation (mm/day)",                  
         cbar.set_label('Mean Precipitation (mm/day)',size='xx-small')
+        ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
+                 '  Level:'+str(var_subset.level.values)+
+                 ' '+var_subset.level.GRIB_name, size='x-small')
     else:
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))
         s_plot = ax3.contourf(lons,lats,plot_data,
@@ -202,28 +213,25 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)# label="Relative humidity (%)",                     
         else:
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="Relative humidity (%)",                  
-        cbar.set_label('Relative humidity (%)',size='xx-small')    
+        cbar.set_label('Relative humidity (%)',size='xx-small')
+        if str(var_subset.level.values) in level_in_feet:
+            ax3.set_title('Month:'+calendar.month_name[time_s]+
+                         '  Level:'+str(var_subset.level.values)+
+                         ' '+var_subset.level.GRIB_name+' ('+level_in_feet[str(var_subset.level.values)]+')', 
+                         size='medium')
+        else:
+            ax3.set_title('Month:'+calendar.month_name[time_s]+
+                         '  Level:'+str(var_subset.level.values)+
+                         ' '+var_subset.level.GRIB_name,
+                         size='medium')  
     cbar.ax.tick_params(labelsize='xx-small')
-    level_in_feet = {"1000.0": 'Surface',
-                     "925.0": '3000 ft',
-                     "850.0": '5000 ft',
-                     "700.0": '10000 ft',
-                     "500.0": '18000 ft'}
+    
     #ax3.set_title(calendar.month_name[time_s][:3],size='small')
     #ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
     #             '  Level:'+str(var_subset.level.values)+
     #             ' '+var_subset.level.GRIB_name, size='x-small')
     
-    if str(var_subset.level.values) in level_in_feet:
-            ax3.set_title('Month:'+calendar.month_name[time_s]+
-                         '  Level:'+str(var_subset.level.values)+
-                         ' '+var_subset.level.GRIB_name+' ('+level_in_feet[str(var_subset.level.values)]+')', 
-                         size='medium')
-    else:
-            ax3.set_title('Month:'+calendar.month_name[time_s]+
-                         '  Level:'+str(var_subset.level.values)+
-                         ' '+var_subset.level.GRIB_name,
-                         size='medium')
+    
 
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
