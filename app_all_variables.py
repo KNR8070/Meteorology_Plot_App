@@ -426,7 +426,7 @@ var_type = option_menu("Choose the variable", ("Temp_2m",
                                                 "Relative Humidity"),
                                                 menu_icon="None",#default_index='None', 
                                                 orientation="horizontal",
-                        icons=['thermometer', 'tornado', "rain_cloud", 'droplet'],) 
+                        icons=['thermometer', 'tornado', "cloud", 'droplet'],) 
                         #menu_icon="cast", default_index=0, orientation="horizontal")
 #var_type = st.sidebar.selectbox("Choose the variable", ("Temp_2m", "Wind", "Precipitation","Relative Humidity"))
 st.write("---")
