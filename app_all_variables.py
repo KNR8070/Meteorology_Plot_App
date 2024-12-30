@@ -204,11 +204,27 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="Relative humidity (%)",                  
         cbar.set_label('Relative humidity (%)',size='xx-small')    
     cbar.ax.tick_params(labelsize='xx-small')
-
+    level_in_feet = {"1000.0": 'Surface',
+                     "925.0": '3000 ft',
+                     "850.0": '5000 ft',
+                     "700.0": '10000 ft',
+                     "500.0": '18000 ft'}
     #ax3.set_title(calendar.month_name[time_s][:3],size='small')
-    ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
-                 '  Level:'+str(var_subset.level.values)+
-                 ' '+var_subset.level.GRIB_name, size='x-small')
+    #ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
+    #             '  Level:'+str(var_subset.level.values)+
+    #             ' '+var_subset.level.GRIB_name, size='x-small')
+    
+    if str(var_subset.level.values) in level_in_feet:
+            ax3.set_title('Month:'+calendar.month_name[time_s]+
+                         '  Level:'+str(ds_u.level.values)+
+                         ' '+ds_u.level.GRIB_name+' ('+level_in_feet[str(ds_u.level.values)]+')', 
+                         size='medium')
+        else:
+            ax3.set_title('Month:'+calendar.month_name[time_s]+
+                         '  Level:'+str(ds_u.level.values)+
+                         ' '+ds_u.level.GRIB_name,
+                         size='medium')
+
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
 
