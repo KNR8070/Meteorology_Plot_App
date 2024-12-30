@@ -146,9 +146,15 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
                                    size='xx-small')
     ax.set_xlabel('Longitude',size='x-small')
     ax.set_ylabel('Latitude',size='x-small')
-    ax.set_title('Month:'+calendar.month_name[time_s][:3]+
+    level_in_feet = {"1000.0": 'Surface',
+                     "925.0": '3000 ft',
+                     "850.0": '5000 ft',
+                     "700.0": '10000 ft',
+                     "500.0": '18000 ft'}
+    ax.set_title('Month:'+calendar.month_name[time_s]+
                  '  Level:'+str(ds_u.level.values)+
-                 ' '+ds_u.level.GRIB_name, size='x-small')
+                 ' '+ds_u.level.GRIB_name+' ('+level_in_feet[str(ds_u.level.values)]+')', 
+                 size='x-small')
     ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot(fig)
 #%% [markdown]
