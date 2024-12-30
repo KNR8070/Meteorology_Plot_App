@@ -205,7 +205,10 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
         cbar.set_label('Relative humidity (%)',size='xx-small')    
     cbar.ax.tick_params(labelsize='xx-small')
 
-    ax3.set_title(calendar.month_name[time_s][:3],size='small')
+    #ax3.set_title(calendar.month_name[time_s][:3],size='small')
+    ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
+                 '  Level:'+str(var_subset.level.values)+
+                 ' '+var_subset.level.GRIB_name, size='x-small')
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
 
