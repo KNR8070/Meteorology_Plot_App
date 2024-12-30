@@ -185,8 +185,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="2m Temperature (degC)", 
         cbar.set_label('2m Temperature (degC)',size='xx-small')
         ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
-                 '  Level:'+str(var_subset.level.values)+
-                 ' '+var_subset.level.GRIB_name, size='x-small')            
+                 '  Level: Surface', size='x-small')            
         
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))
@@ -201,8 +200,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.5)# label="Mean Precipitation (mm/day)",                  
         cbar.set_label('Mean Precipitation (mm/day)',size='xx-small')
         ax3.set_title('Month:'+calendar.month_name[time_s][:3]+
-                 '  Level:'+str(var_subset.level.values)+
-                 ' '+var_subset.level.GRIB_name, size='x-small')
+                 '  Level: Surface', size='x-small')
     else:
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))
         s_plot = ax3.contourf(lons,lats,plot_data,
