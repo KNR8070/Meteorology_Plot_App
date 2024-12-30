@@ -216,7 +216,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
     
     if str(var_subset.level.values) in level_in_feet:
             ax3.set_title('Month:'+calendar.month_name[time_s]+
-                         '  Level:'+str(ds_u.level.values)+
+                         '  Level:'+str(var_subset.level.values)+
                          ' '+var_subset.level.GRIB_name+' ('+level_in_feet[str(var_subset.level.values)]+')', 
                          size='medium')
     else:
