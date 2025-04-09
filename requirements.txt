@@ -5,3 +5,4 @@ windrose
 cartopy
 cmcrameri
 streamlit-option-menu
+geopandas
