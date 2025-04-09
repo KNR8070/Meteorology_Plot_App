@@ -12,6 +12,7 @@ Created on Fri Nov  8 20:54:39 2024
 import streamlit as st
 import xarray as xr
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from windrose import WindroseAxes
 import cartopy.crs as ccrs
@@ -391,6 +392,27 @@ def user_input_loc(lat,lon):
                                           max_value=float(str(lon.values.max())), 
                                           value=78.5,step=0.01, format='%3.2f')
     return lat_loc, lon_loc
+
+def user_input_region(region):
+    df = pd.DataFrame({
+        'Region': ['India', 'USA', 'Europe', 'Russia', 'China', 'Japan', 'Australia', 'Africa', 'South America'],
+        'Lat_min': [5.0, 22.0, 35.0, 38.0, 18.0, 20.0, -48.0, -40.0, -58.0, ],
+        'Lat_max': [35.0, 49.0, 72.0, 82.0, 54.0, 48.0, -5.0, 40.0, 15.0 ],
+        'Lon_min': [65.0, -130.0, -25.0, -5.0, 73.0, 122.0, 105.0, -25.0, -95.0],
+        'Lon_max': [95.0, -65.0, 65.0, 169.0, 135.0, 153.0, 160.0, 60.0, -25.0  ]
+    })
+    if region in df['Region'].values:
+    # Get the latitude and longitude values for the selected region
+        lat_min = df.loc[df['Region'] == region, 'Lat_min'].values[0]
+        lat_max = df.loc[df['Region'] == region, 'Lat_max'].values[0]
+        lon_min = df.loc[df['Region'] == region, 'Lon_min'].values[0]
+        lon_max = df.loc[df['Region'] == region, 'Lon_max'].values[0]
+    else:
+        lat_min = -84.00
+        lat_max = 84.00
+        lon_min = -174.00
+        lon_max = 174.00
+    return lat_min, lat_max, lon_min, lon_max
 #%% [markdown] 
 ## Streamlit App
 #col1, col2 = st.columns(2, gap='small', vertical_alignment='center')
@@ -418,6 +440,8 @@ ds_pr.reindex(lat=list(reversed(ds_pr.lat)))
 ds_rh = convert_180_180(load_rh_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 lon = ds_temp['lon']
 lat = ds_temp['lat']
+
+regions = ['Global', 'India', 'USA', 'Europe', 'Russia', 'China', 'Japan', 'Australia', 'Africa', 'South America'] 
 #%% [markdown]
 # User Inputs  
 var_type = option_menu("Choose the variable", ("Temp_2m", 
@@ -463,8 +487,10 @@ if var_type == 'Wind':
 
     elif plot_type == "Spatial Wind Vectors":
         st.header("Spatial Wind Vectors")    
-        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")    
-        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
+        st.write("Default region is shown here. Please select your region of interest.")    
+        region_sel = st.sidebar.selectbox('Select the region of interest', regions)
+        [lat_min, lat_max, lon_min, lon_max] = user_input_region(region_sel)
+        #[lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
@@ -507,8 +533,10 @@ elif var_type == 'Temp_2m':
                                 icons=['test','test'])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
-        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")        
-        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
+        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")       
+        region_sel = st.sidebar.selectbox('Select the region of interest', regions)
+        [lat_min, lat_max, lon_min, lon_max] = user_input_region(region_sel)
+        #[lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_temp_subset = ds_temp['air'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
 
@@ -536,8 +564,10 @@ elif var_type == 'Precipitation':
                                 icons=['test','test'])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")
-        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")
-        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)        
+        st.write("Default region is shown here. Please select your region of interest.")
+        region_sel = st.sidebar.selectbox('Select the region of interest', regions)
+        [lat_min, lat_max, lon_min, lon_max] = user_input_region(region_sel)
+        #[lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)        
         ds_pr_subset = ds_pr['precip'].sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel)
@@ -563,8 +593,10 @@ else: #Relative Humidity
                                 icons=['test','test','test'])
     if plot_type == 'Spatial plot':
         st.header("Spatial plot")   
-        st.write("Default region is shown here. Please select your region of interest using latitude and longitude")     
-        [lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
+        st.write("Default region is shown here. Please select your region of interest.")     
+        region_sel = st.sidebar.selectbox('Select the region of interest', regions)
+        [lat_min, lat_max, lon_min, lon_max] = user_input_region(region_sel)
+        #[lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)
         ds_rh_subset = ds_rh['rhum'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
