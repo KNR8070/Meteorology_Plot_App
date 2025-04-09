@@ -17,11 +17,21 @@ import matplotlib.pyplot as plt
 from windrose import WindroseAxes
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+from cartopy.feature import ShapelyFeature
 import calendar
 import cmcrameri.cm as cmc
 from streamlit_option_menu import option_menu
+import geopandas as gpd
 #%% [markdown] 
 ## Load wind data from NetCDF
+@st.cache_data
+def load_shapefile():
+    India = gpd.read_file('data/India_Shapefile_/india_administrative_outline_boundary.shp', crs="epsg:4326")
+    # If CRS is missing, set it manually
+    if India.crs is None:
+        India.set_crs("EPSG:4326", inplace=True)
+    
+    return India
 @st.cache_data
 def load_temp_data():
     ds_temp = xr.open_dataset("data/air.2m.mon.ltm.1991-2020.nc")
@@ -90,7 +100,7 @@ def calculate_x_y_size(lat_min, lat_max, lon_min, lon_max):
     return x_size, y_size
 #%% [markdown] 
 # Function to plot wind vector plot
-def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
+def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s, region):
     # Select data within specified lat/lon box   
     speed_mean = np.sqrt(ds_u**2 + ds_v**2)
     x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
@@ -102,7 +112,19 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
                    speed_mean.lat.values.max(),#lat_max
                    ], 
                    crs=ccrs.PlateCarree())
-    ax.add_feature(cfeature.COASTLINE)
+    India = load_shapefile()
+    shape_feature = ShapelyFeature(India.geometry,
+                                ccrs.PlateCarree(), edgecolor='black', 
+                                facecolor='none')
+    if (region != 'Global') and (region != 'India'):  
+        ax.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax.add_feature(cfeature.COASTLINE)
+    elif region == 'India':
+        #India.plot(facecolor='none',edgecolor='black',ax=ax)
+        ax.add_feature(shape_feature, linewidth=1.0)
+        ax.add_feature(cfeature.COASTLINE)
+    else:
+        ax.add_feature(cfeature.COASTLINE)
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap=cmc.batlowW_r, extend='both')
@@ -160,7 +182,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s):
     st.pyplot(fig)
 #%% [markdown]
 #Function to plot spatial variation in variables
-def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
+def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
     #plt.rcParams['ytick.right'] = plt.rcParams['ytick.labelright'] = False
     x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
     fig, ax3 = plt.subplots(figsize=(x_size,y_size),
@@ -169,8 +191,24 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s):
                     var_subset.lon.values.max(),#lon_max, 
                     var_subset.lat.values.min(),#lat_min,
                     var_subset.lat.values.max()],#lat_max,], 
-                    crs=ccrs.PlateCarree())
-    ax3.add_feature(cfeature.COASTLINE)   
+                    crs=ccrs.PlateCarree()) 
+    India = load_shapefile()
+    shape_feature = ShapelyFeature(India.geometry,
+                                ccrs.PlateCarree(), edgecolor='black', 
+                                facecolor='none')
+    if (region != 'Global') and (region != 'India') and (region != 'China'):  
+        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax3.add_feature(cfeature.COASTLINE)
+    elif (region == 'India'):
+        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
+        #India.plot(facecolor='none',edgecolor='black',ax=ax3)
+        ax3.add_feature(cfeature.COASTLINE)
+    elif (region == 'China'):
+        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
+        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax3.add_feature(cfeature.COASTLINE)
+    else:
+        ax3.add_feature(cfeature.COASTLINE)
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(var_subset.lon, var_subset.lat)
     level_in_feet = {"1000.0": 'Surface',
@@ -396,10 +434,10 @@ def user_input_loc(lat,lon):
 def user_input_region(region):
     df = pd.DataFrame({
         'Region': ['India', 'USA', 'Europe', 'Russia', 'China', 'Japan', 'Australia', 'Africa', 'South America'],
-        'Lat_min': [5.0, 22.0, 35.0, 38.0, 18.0, 20.0, -48.0, -40.0, -58.0, ],
-        'Lat_max': [35.0, 49.0, 72.0, 82.0, 54.0, 48.0, -5.0, 40.0, 15.0 ],
+        'Lat_min': [0.0, 22.0, 35.0, 38.0, 18.0, 20.0, -48.0, -40.0, -58.0, ],
+        'Lat_max': [40.0, 55.0, 72.0, 82.0, 54.0, 48.0, -5.0, 40.0, 15.0 ],
         'Lon_min': [65.0, -130.0, -25.0, -5.0, 73.0, 122.0, 105.0, -25.0, -95.0],
-        'Lon_max': [95.0, -65.0, 65.0, 169.0, 135.0, 153.0, 160.0, 60.0, -25.0  ]
+        'Lon_max': [100.0, -65.0, 65.0, 169.0, 135.0, 153.0, 160.0, 60.0, -25.0  ]
     })
     if region in df['Region'].values:
     # Get the latitude and longitude values for the selected region
@@ -502,7 +540,7 @@ if var_type == 'Wind':
                                        lon=slice(lon_min, lon_max),
                                        level=level_sel)
         plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:], 
-                          lat_min, lat_max, lon_min, lon_max,time_sel)
+                          lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
 
     elif plot_type == "Time Series":
         st.header("Wind Speed Time Series")
@@ -540,7 +578,8 @@ elif var_type == 'Temp_2m':
         ds_temp_subset = ds_temp['air'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
 
-        plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, lon_min, lon_max,time_sel)
+        plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, 
+                      lon_min, lon_max,time_sel, region_sel)
 
     else:
         st.header("Time series plot")
@@ -570,7 +609,7 @@ elif var_type == 'Precipitation':
         #[lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)        
         ds_pr_subset = ds_pr['precip'].sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
-        plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel)
+        plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
     else:
         st.header("Time series plot")
         st.write("Default location is shown here. Please select your location of interest using latitude and longitude") 
@@ -601,7 +640,7 @@ else: #Relative Humidity
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
 
-        plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel)
+        plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
     elif plot_type == 'Time Series':
         st.header("Time series plot")
         st.write("Default location and pressure level is shown here. Please select your location of interest using latitude and longitude, and the pressure level") 
