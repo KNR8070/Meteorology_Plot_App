@@ -6,8 +6,6 @@ Created on Fri Nov  8 20:54:39 2024
 @author: knreddy
 """
 #%% [markdown]
-### Meteorological Visualisation App.
-#%% [markdown]
 ## load modules
 import streamlit as st
 import xarray as xr
