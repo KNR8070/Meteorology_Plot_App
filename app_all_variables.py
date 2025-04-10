@@ -219,8 +219,8 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,
                               cmap=cmc.vik, 
-                              vmin=-30, vamx=30,
-                              levels=np.linspace(-30,30,31),
+                              vmin=-40, vamx=40,
+                              levels=np.linspace(-40,40,81),
                               extend='both')
         if x_size<y_size:
             cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
