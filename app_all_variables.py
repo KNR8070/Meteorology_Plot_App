@@ -7,6 +7,7 @@ Created on Fri Nov  8 20:54:39 2024
 """
 #%% [markdown]
 ## load modules
+
 import streamlit as st
 import xarray as xr
 import numpy as np
@@ -50,6 +51,125 @@ def load_pr_data():
 def load_rh_data():   
     ds_rh = xr.open_dataset("data/rhum.mon.ltm.1991-2020.nc")
     return ds_rh
+
+# %% Anomaly plotting
+def anomaly_plotting(clim_var,mon, region):
+    [lat_min, lat_max, lon_min, lon_max] = user_input_region(region)
+    # Load the data
+    var_data = xr.open_dataset('data/era5_2024_2025_'+ clim_var.name+'.nc')
+    var_data = convert_180_180(var_data).sel(lat=slice(85,-85),lon=slice(-176,176))
+    var_subset = var_data[clim_var.name].sel(lat=slice(lat_max, lat_min), 
+                                        lon=slice(lon_min, lon_max),
+                                        level=1000)
+    clim_var_subset = clim_var.sel(lat=slice(lat_max, lat_min),
+                                    lon=slice(lon_min, lon_max))
+    
+    if len(var_subset.time[var_subset.time.dt.month == mon]) == 2:
+        year = np.unique(var_subset.time.dt.year.values)[1]
+        sub_data = var_subset[var_subset.time.dt.year == year]
+        var_plot_data = np.squeeze(sub_data.isel(time=mon-1))-273.15
+    else:
+        year = np.unique(var_subset.time.dt.year.values)[0]
+        sub_data = var_subset[var_subset.time.dt.year == year]
+        var_plot_data = np.squeeze(sub_data.isel(time=mon-1))-273.15
+###### Plotting
+    x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
+    fig, ax3 = plt.subplots(figsize=(x_size,y_size),
+                            subplot_kw={'projection': ccrs.PlateCarree()})#,
+    ax3.set_extent([var_subset.lon.values.min(),#lon_min,
+                    var_subset.lon.values.max(),#lon_max, 
+                    var_subset.lat.values.min(),#lat_min,
+                    var_subset.lat.values.max()],#lat_max,], 
+                    crs=ccrs.PlateCarree()) 
+    India = load_shapefile()
+    shape_feature = ShapelyFeature(India.geometry,
+                                ccrs.PlateCarree(), edgecolor='black', 
+                                facecolor='none')
+    if (region != 'Global') and (region != 'India') and (region != 'China'):  
+        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax3.add_feature(cfeature.COASTLINE)
+    elif (region == 'India'):
+        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
+        #India.plot(facecolor='none',edgecolor='black',ax=ax3)
+        ax3.add_feature(cfeature.COASTLINE)
+    elif (region == 'China'):
+        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
+        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax3.add_feature(cfeature.COASTLINE)
+    else:
+        ax3.add_feature(cfeature.COASTLINE)
+    # Plot contour fill for wind speed
+    lons, lats = np.meshgrid(clim_var.lon, clim_var.lat)
+    level_in_feet = {"1000.0": 'Surface',
+                     "925.0": '3000 ft',
+                     "850.0": '5000 ft',
+                     "700.0": '10000 ft',
+                     "500.0": '18000 ft'}
+
+    if clim_var.var_desc=='Air temperature':
+        clim_plot_data = np.squeeze(clim_var_subset.isel(time=mon-1))-273.15
+        plot_data = clim_plot_data - var_plot_data
+        s_plot = ax3.contourf(lons,lats,plot_data,
+                              cmap=cmc.vik, 
+                              vmin=-20, vamx=20,
+                              levels=np.linspace(-20,20,41),
+                              extend='both')
+        if x_size<y_size:
+            cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
+        else:
+            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="2m Temperature (degC)", 
+        cbar.set_label('2m Temperature (degC)',size='xx-small')
+        ax3.set_title('Anomaly in '+calendar.month_name[mon]+'  '+ str(year)+ 
+                      ' compared to 1991-2021 clim.', size='x-small')            
+        
+    else:
+        plot_data = np.squeeze(var_subset.isel(time=mon-1))
+        s_plot = ax3.contourf(lons,lats,plot_data,
+                              cmap=cmc.batlowW, 
+                              vmin=0,vmax=100,
+                              levels=np.linspace(0,100,26))
+        if x_size<y_size:
+            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)# label="Relative humidity (%)",                     
+        else:
+            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="Relative humidity (%)",                  
+        cbar.set_label('Relative humidity (%)',size='xx-small')
+        if str(var_subset.level.values) in level_in_feet:
+            ax3.set_title('Month:'+calendar.month_name[mon]+
+                         '  Level:'+str(var_subset.level.values)+
+                         ' '+var_subset.level.GRIB_name+' ('+level_in_feet[str(var_subset.level.values)]+')', 
+                         size='medium')
+        else:
+            ax3.set_title('Month:'+calendar.month_name[mon]+
+                         '  Level:'+str(var_subset.level.values)+
+                         ' '+var_subset.level.GRIB_name,
+                         size='medium')  
+    cbar.ax.tick_params(labelsize='xx-small')
+    
+    #ax3.set_title(calendar.month_name[mon][:3],size='small')
+    #ax3.set_title('Month:'+calendar.month_name[mon][:3]+
+    #             '  Level:'+str(var_subset.level.values)+
+    #             ' '+var_subset.level.GRIB_name, size='x-small')
+    
+    
+
+    ax3.set_xlabel('Longitude',size='x-small')
+    ax3.set_ylabel('Latitude',size='x-small')
+
+    ax3.set_xticks(np.linspace(np.floor(clim_var.lon.values.min()),#lon_min,
+                               np.floor(clim_var.lon.values.max()),#lon_max,
+                               num=5,endpoint=True))#format='%2.2f'))
+    ax3.set_yticks(np.linspace(np.floor(clim_var.lat.values.min()),#lat_min,
+                               np.floor(clim_var.lat.values.max()),#lat_max,
+                               num=5,endpoint=True))#,format='%2.2f'))
+    ax3.set_xticklabels(np.linspace(np.floor(clim_var.lon.values.min()),#lon_min,
+                                    np.floor(clim_var.lon.values.max()),#lon_max,
+                                    num=5,endpoint=True),#format='%2.2f'),
+                                    size='xx-small')
+    ax3.set_yticklabels(np.linspace(np.floor(clim_var.lat.values.min()),#lat_min,
+                                    np.floor(clim_var.lat.values.max()),#lat_max,
+                                    num=5,endpoint=True),#format='%2.2f'),
+                                    size='xx-small')
+    st.pyplot(fig)
 #%% [markdown]
 # Calculate wind speed and direction from u10 and v10
 def calculate_wind(uwnd,vwnd):
@@ -218,7 +338,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
     if var_subset.var_desc=='Air temperature':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,
-                              cmap=cmc.vik, 
+                              cmap=cmc.broc, 
                               vmin=-40, vamx=40,
                               levels=np.linspace(-40,40,81),
                               extend='both')
@@ -227,8 +347,8 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
         else:
             cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="2m Temperature (degC)", 
         cbar.set_label('2m Temperature (degC)',size='xx-small')
-        ax3.set_title('Month:'+calendar.month_name[time_s]+
-                 '  Level: Surface', size='x-small')            
+        ax3.set_title('Climatology in '+calendar.month_name[time_s]+
+                 ' (1991-2021)', size='x-small')            
         
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))
@@ -428,7 +548,7 @@ def user_input_loc(lat,lon):
                                           max_value=float(str(lon.values.max())), 
                                           value=78.5,step=0.01, format='%3.2f')
     return lat_loc, lon_loc
-
+#%%
 def user_input_region(region):
     df = pd.DataFrame({
         'Region': ['India', 'USA', 'Europe', 'Russia', 'China', 'Japan', 'Australia', 'Africa', 'South America'],
@@ -576,9 +696,18 @@ elif var_type == 'Temp_2m':
         ds_temp_subset = ds_temp['air'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
 
-        plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, 
+        
+        anomaly_plt = st.sidebar.checkbox('Check Anomaly for the month selected \n in the year 2024 or 2025')
+        if anomaly_plt:
+            col1, col2 = st.columns(2)
+            with col1:
+                plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, 
                       lon_min, lon_max,time_sel, region_sel)
-
+            with col2:
+                anomaly_plotting(ds_temp_subset.sel(level=2),time_sel, region_sel)
+        else:
+            plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, 
+                      lon_min, lon_max,time_sel, region_sel)
     else:
         st.header("Time series plot")
         st.write("Default location is shown here. Please select your location of interest using latitude and longitude") 
