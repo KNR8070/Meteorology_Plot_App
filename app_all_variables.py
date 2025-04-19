@@ -174,7 +174,7 @@ def anomaly_plotting(clim_var,mon, region):
 # Calculate wind speed and direction from u10 and v10
 def calculate_wind(uwnd,vwnd):
     speed = np.sqrt(uwnd**2 + vwnd**2)
-    direction = (np.arctan2(vwnd, uwnd) * 180 / np.pi + 180) % 360
+    direction = (270 - np.arctan2(vwnd, uwnd) * 180 / np.pi) % 360
     return speed, direction
 #%% [markdown] 
 # Function to select the spatial plot box
