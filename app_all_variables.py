@@ -21,7 +21,12 @@ import calendar
 import cmcrameri.cm as cmc
 from streamlit_option_menu import option_menu
 import geopandas as gpd
-#%% [markdown] 
+
+#%% Download ERA5 data at the start of a new month
+if today.day == 1:
+    import subprocess
+    subprocess.run(["python3", "Download_ERA5_monthly_data.py"], check=True)
+#%% [markdown]
 ## Load wind data from NetCDF
 @st.cache_data
 def load_shapefile():
