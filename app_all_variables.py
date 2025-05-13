@@ -444,8 +444,8 @@ def plot_time_series(speed,direction):
                   ' and Longitude = '+str(speed_loc.lon.values)+
                   '  Level:'+str(speed.level.values)+
                   ' '+speed.level.GRIB_name)
-    ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
-             fontsize=6,transform=ax1.transAxes)
+    #ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
+    #         fontsize=6,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 # Function to plot time series of variables
@@ -783,4 +783,6 @@ else: #Relative Humidity
         mon_sel = st.sidebar.selectbox("Select Month",np.arange(1,13))
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
         plot_vertical_rh(rh_loc,mon_sel-1)  
-# %%
+# %% [markdown]
+st.write("---")
+st.markdown(f"Data Source: {ds_temp.attrs['source']}")
