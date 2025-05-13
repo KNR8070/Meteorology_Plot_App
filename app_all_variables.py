@@ -108,7 +108,7 @@ def anomaly_plotting(clim_var,mon, region):
 
     if clim_var.var_desc=='Air temperature':
         clim_plot_data = np.squeeze(clim_var_subset.isel(time=mon-1))-273.15
-        plot_data = clim_plot_data - var_plot_data
+        plot_data = var_plot_data - clim_plot_data
         s_plot = ax3.contourf(lons,lats,plot_data,
                               cmap=cmc.vik, 
                               vmin=-20, vamx=20,
@@ -411,12 +411,12 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
                                     np.floor(var_subset.lat.values.max()),#lat_max,
                                     num=5,endpoint=True),#format='%2.2f'),
                                     size='xx-small')
-    if x_size<y_size:
-        ax3.text(0.7,-0.4,'Data Source: '+ds_temp.attrs['source'],
-                 fontsize=4,transform=ax3.transAxes)
-    else:
-        ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],
-                 fontsize=4,transform=ax3.transAxes)
+    #if x_size<y_size:
+    #    ax3.text(0.7,-0.4,'Data Source: '+ds_temp.attrs['source'],
+    #             fontsize=4,transform=ax3.transAxes)
+    #else:
+    #    ax3.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],
+    #             fontsize=4,transform=ax3.transAxes)
     st.pyplot(fig)   
 #%% [markdown] 
 # Function to plot wind speed and direction time series
@@ -783,3 +783,6 @@ else: #Relative Humidity
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc, lon=lon_loc, method='nearest')
         plot_vertical_rh(rh_loc,mon_sel-1)  
 # %%
+# %% [markdown]
+st.write("---")
+st.markdown(f"Data Source: {ds_temp.attrs['source']}")
