@@ -787,4 +787,8 @@ else: #Relative Humidity
 # %%
 # %% [markdown]
 st.write("---")
-st.markdown(f"Data Source: {ds_temp.attrs['source']}")
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown(f"Climatology Data Source: {ds_temp.attrs['source']}")
+with col2:
+    st.markdown(f"Current Data Source: Reanalysis-ERA5-Pressure-Levels-Monthly-Means")
