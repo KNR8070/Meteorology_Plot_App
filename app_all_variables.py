@@ -21,6 +21,8 @@ import calendar
 import cmcrameri.cm as cmc
 from streamlit_option_menu import option_menu
 import geopandas as gpd
+
+st.set_page_config(layout="wide")
 #%% [markdown] 
 ## Load wind data from NetCDF
 @st.cache_data
