@@ -599,7 +599,7 @@ ds_rh = convert_180_180(load_rh_data()).sel(lat=slice(85,-85),lon=slice(-176,176
 lon = ds_temp['lon']
 lat = ds_temp['lat']
 
-anomaly_plt=False
+anomaly_plt = False
 
 regions = ['Global', 'India', 'USA', 'Europe', 'Russia', 'China', 'Japan', 'Australia', 'Africa', 'South America'] 
 #%% [markdown]
