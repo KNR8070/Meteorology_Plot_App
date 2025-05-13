@@ -53,14 +53,15 @@ def load_rh_data():
     return ds_rh
 
 # %% Anomaly plotting
-def anomaly_plotting(clim_var,mon, region):
+def anomaly_plotting(clim_var, mon, region):
     [lat_min, lat_max, lon_min, lon_max] = user_input_region(region)
-    # Load the data
+    # Load the data for latest year month
     var_data = xr.open_dataset('data/era5_2024_2025_'+ clim_var.name+'.nc')
     var_data = convert_180_180(var_data).sel(lat=slice(85,-85),lon=slice(-176,176))
     var_subset = var_data[clim_var.name].sel(lat=slice(lat_max, lat_min), 
                                         lon=slice(lon_min, lon_max),
                                         level=1000)
+    ## Climatology data
     clim_var_subset = clim_var.sel(lat=slice(lat_max, lat_min),
                                     lon=slice(lon_min, lon_max))
     
@@ -108,7 +109,7 @@ def anomaly_plotting(clim_var,mon, region):
 
     if clim_var.var_desc=='Air temperature':
         clim_plot_data = np.squeeze(clim_var_subset.isel(time=mon-1))-273.15
-        plot_data = clim_plot_data - var_plot_data
+        plot_data = var_plot_data - clim_plot_data
         s_plot = ax3.contourf(lons,lats,plot_data,
                               cmap=cmc.vik, 
                               vmin=-20, vamx=20,
