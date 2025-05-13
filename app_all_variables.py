@@ -193,8 +193,8 @@ def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
     ax.set_legend(title="Wind Speed (m/s)",loc='best')
-    ax.text(0.7,-0.0,'Data Source: '+ds_temp.attrs['source'],
-            fontsize=6,transform=ax.transAxes)
+    #ax.text(0.7,-0.0,'Data Source: '+ds_temp.attrs['source'],
+    #        fontsize=6,transform=ax.transAxes)
     st.pyplot()  
 #%% [markdown]
 # calculating figsize for spatial plots
@@ -298,7 +298,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s, reg
                  '  Level:'+str(ds_u.level.values)+
                  ' '+ds_u.level.GRIB_name+' ('+level_in_feet[str(ds_u.level.values)]+')', 
                  size='x-small')
-    ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
+    #ax.text(0.7,-0.2,'Data Source: '+ds_temp.attrs['source'],fontsize=4,transform=ax.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 #Function to plot spatial variation in variables
@@ -445,8 +445,8 @@ def plot_time_series(speed,direction):
                   ' and Longitude = '+str(speed_loc.lon.values)+
                   '  Level:'+str(speed.level.values)+
                   ' '+speed.level.GRIB_name)
-    ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
-             fontsize=6,transform=ax1.transAxes)
+    #ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
+    #         fontsize=6,transform=ax1.transAxes)
     st.pyplot(fig)
 #%% [markdown]
 # Function to plot time series of variables
@@ -787,8 +787,11 @@ else: #Relative Humidity
 # %%
 # %% [markdown]
 st.write("---")
+if anomaly_plt:
 col1, col2 = st.columns(2)
-with col1:
+    with col1:
+        st.markdown(f"Climatology Data Source: {ds_temp.attrs['source']}")
+    with col2:
+        st.markdown(f"Current Data Source: Reanalysis-ERA5-Pressure-Levels-Monthly-Means")
+else:
     st.markdown(f"Climatology Data Source: {ds_temp.attrs['source']}")
-with col2:
-    st.markdown(f"Current Data Source: Reanalysis-ERA5-Pressure-Levels-Monthly-Means")
