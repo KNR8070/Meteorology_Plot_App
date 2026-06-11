@@ -743,15 +743,6 @@ def user_input_region(region):
 #with col1:
 #st.image("My_page_enhanced.png", width=150)
 #with col2:
-#    st.title("K Narender Reddy", anchor='False')
-#    st.write("Early Career Scientist, research interests include land surface modeling, crop modeling, and associated surface fluxes.")
-#st.button('Go to Met. Visualisation', )
-st.markdown('''**Details of author**  
-        Built by: K Narender Reddy   
-        Email :email: : knreddyiitd@gmail.com  
-        Web Page :globe_with_meridians: : https://knreddy.online  
-        Version 1: November, 2024''')
-st.write("---")
 st.title("Met. Data Visualization")
 st.write("_NOTE: All data shown here is the Climatology data (1991-2021)_")
 st.logo('icon.png',size='large')
@@ -1004,3 +995,10 @@ if anomaly_plt:
         st.markdown(f"Current Data Source: Reanalysis-ERA5-Pressure-Levels-Monthly-Means")
 else:
     st.markdown(f"Climatology Data Source: {ds_temp.attrs['source']}")
+
+st.write("---")
+st.markdown('''**Details of author**
+Built by: K Narender Reddy
+Email :email: : knreddyiitd@gmail.com
+Web Page :globe_with_meridians: : https://knreddy.online
+Version 1: November, 2024''')
