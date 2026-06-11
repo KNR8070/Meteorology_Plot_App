@@ -23,23 +23,22 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install cdsapi xarray netCDF4 numpy
+          pip install --upgrade "cdsapi>=0.7.0" xarray netCDF4 numpy
 
       - name: Configure CDS API credentials
         env:
-          CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
         run: |
-          mkdir -p ~/.config/cdsapi
-          cat > ~/.cdsapirc <<EOF
-          url: ${CDSAPI_URL}
+          # New CDS API (post-2024): url = https://cds.climate.copernicus.eu/api
+          # key = just the API token, no "UID:" prefix
+          cat > ~/.cdsapirc <<'RCEOF'
+          url: https://cds.climate.copernicus.eu/api
           key: ${CDSAPI_KEY}
-          EOF
+          RCEOF
+          # Expand the env var (heredoc above kept it literal)
+          sed -i "s|\${CDSAPI_KEY}|${CDSAPI_KEY}|g" ~/.cdsapirc
 
       - name: Fetch latest ERA5 data
-        env:
-          CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
-          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
         run: python scripts/fetch_era5.py
 
       - name: Commit updated ERA5 data files
@@ -51,4 +50,8 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: update ERA5 data $(date +'%Y-%m')"
 
       - name: Push changes
-        run: git push
+        run: |
+          git config http.postBuffer 524288000
+          git config http.lowSpeedLimit 0
+          git config http.lowSpeedTime 0
+          git push origin main
