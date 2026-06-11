@@ -10,6 +10,7 @@ Run with:
 import calendar
 
 import cartopy.feature as cfeature
+import streamlit.components.v1 as _st_components
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
@@ -294,6 +295,18 @@ def get_anomaly(var_key, month, level):
     return anom, year, da_clim
 
 
+# ── auto-play helper ──────────────────────────────────────────────────────────
+def _show_globe(fig, height=650):
+    """Render a globe figure in an iframe so auto_play fires on page load."""
+    html_str = fig.to_html(
+        auto_play=True,
+        include_plotlyjs="cdn",
+        full_html=True,
+        config={"responsive": True, "displayModeBar": False},
+    )
+    _st_components.html(html_str, height=height + 80, scrolling=False)
+
+
 # ── main ──────────────────────────────────────────────────────────────────────
 month_name = calendar.month_name[month]
 
@@ -302,9 +315,8 @@ with st.spinner("Building globe ..."):
     if view_mode == "Climatology":
         da = get_clim(var_key, month - 1, level_sel)
         vmin, vmax = CLIM_RANGE[var_key]
-        fig = build_globe(da, f"{var_label} Climatology — {month_name}",
-                          CMAPS[var_key], vmin, vmax)
-        st.plotly_chart(fig, use_container_width=True)
+        _show_globe(build_globe(da, f"{var_label} Climatology — {month_name}",
+                                CMAPS[var_key], vmin, vmax))
         st.caption("NCEP 1991–2020 climatology")
 
     elif view_mode == "ERA5 Current":
@@ -313,9 +325,8 @@ with st.spinner("Building globe ..."):
             st.error(f"No ERA5 file found for '{var_key}'. Run scripts/fetch_era5.py first.")
         else:
             vmin, vmax = CLIM_RANGE[var_key]
-            fig = build_globe(da, f"{var_label} ERA5 — {month_name} {year}",
-                              CMAPS[var_key], vmin, vmax)
-            st.plotly_chart(fig, use_container_width=True)
+            _show_globe(build_globe(da, f"{var_label} ERA5 — {month_name} {year}",
+                                    CMAPS[var_key], vmin, vmax))
             st.caption(f"ERA5 monthly mean · {month_name} {year}")
 
     elif view_mode == "Anomaly (ERA5 − Climatology)":
@@ -324,10 +335,8 @@ with st.spinner("Building globe ..."):
             st.error(f"No ERA5 file found for '{var_key}'. Run scripts/fetch_era5.py first.")
         else:
             vmin, vmax = ANOM_RANGE[var_key]
-            fig = build_globe(anom,
-                              f"{var_label} Anomaly — {month_name} {year}",
-                              ANOM_CMAPS[var_key], vmin, vmax)
-            st.plotly_chart(fig, use_container_width=True)
+            _show_globe(build_globe(anom, f"{var_label} Anomaly — {month_name} {year}",
+                                    ANOM_CMAPS[var_key], vmin, vmax))
             st.caption(f"ERA5 {year} − NCEP 1991–2020 climatology · {month_name}")
 
     else:  # Side-by-side comparison
@@ -341,22 +350,16 @@ with st.spinner("Building globe ..."):
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                fig1 = build_globe(da_clim,
-                                   f"Climatology — {month_name}",
-                                   CMAPS[var_key], vmin_c, vmax_c, height=450)
-                st.plotly_chart(fig1, use_container_width=True)
+                _show_globe(build_globe(da_clim, f"Climatology — {month_name}",
+                                        CMAPS[var_key], vmin_c, vmax_c, height=450), height=450)
                 st.caption("NCEP 1991–2020 climatology")
             with col2:
-                fig2 = build_globe(da_era5,
-                                   f"ERA5 — {month_name} {year}",
-                                   CMAPS[var_key], vmin_c, vmax_c, height=450)
-                st.plotly_chart(fig2, use_container_width=True)
+                _show_globe(build_globe(da_era5, f"ERA5 — {month_name} {year}",
+                                        CMAPS[var_key], vmin_c, vmax_c, height=450), height=450)
                 st.caption(f"ERA5 · {month_name} {year}")
             with col3:
-                fig3 = build_globe(anom,
-                                   f"Anomaly — {month_name} {year}",
-                                   ANOM_CMAPS[var_key], vmin_a, vmax_a, height=450)
-                st.plotly_chart(fig3, use_container_width=True)
+                _show_globe(build_globe(anom, f"Anomaly — {month_name} {year}",
+                                        ANOM_CMAPS[var_key], vmin_a, vmax_a, height=450), height=450)
                 st.caption(f"ERA5 {year} − Climatology")
 
 st.write("---")

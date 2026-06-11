@@ -10,6 +10,7 @@ Created on Fri Nov  8 20:54:39 2024
 
 import glob
 import streamlit as st
+import streamlit.components.v1 as _st_components
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -869,6 +870,17 @@ def _build_globe(da, title, cmap, vmin, vmax, units, height=450):
     return fig
 
 
+def _show_globe(fig, height=450):
+    """Render a globe figure inside an iframe so auto_play triggers on page load."""
+    html_str = fig.to_html(
+        auto_play=True,
+        include_plotlyjs="cdn",
+        full_html=True,
+        config={"responsive": True, "displayModeBar": False},
+    )
+    _st_components.html(html_str, height=height + 80, scrolling=False)
+
+
 def plot_globe_comparison(var_key, month, level=None):
     """Render three interactive globe panels: climatology | ERA5 current | anomaly."""
     month_name = calendar.month_name[month]
@@ -923,22 +935,16 @@ def plot_globe_comparison(var_key, month, level=None):
     with st.spinner("Building globes …"):
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.plotly_chart(
-                _build_globe(da_clim, f"Climatology – {month_name}",
-                             _G_CMAPS[var_key], vmin_c, vmax_c, units),
-                use_container_width=True)
+            _show_globe(_build_globe(da_clim, f"Climatology – {month_name}",
+                                     _G_CMAPS[var_key], vmin_c, vmax_c, units))
             st.caption("NCEP 1991–2020 climatology")
         with c2:
-            st.plotly_chart(
-                _build_globe(da_e5_pt, f"ERA5 – {month_name} {year}",
-                             _G_CMAPS[var_key], vmin_c, vmax_c, units),
-                use_container_width=True)
+            _show_globe(_build_globe(da_e5_pt, f"ERA5 – {month_name} {year}",
+                                     _G_CMAPS[var_key], vmin_c, vmax_c, units))
             st.caption(f"ERA5 · {month_name} {year}")
         with c3:
-            st.plotly_chart(
-                _build_globe(anom, f"Anomaly – {month_name} {year}",
-                             _G_ANOM_CMAPS[var_key], vmin_a, vmax_a, units),
-                use_container_width=True)
+            _show_globe(_build_globe(anom, f"Anomaly – {month_name} {year}",
+                                     _G_ANOM_CMAPS[var_key], vmin_a, vmax_a, units))
             st.caption(f"ERA5 {year} − Climatology")
 
 # ── end of globe helpers ───────────────────────────────────────────────────────
