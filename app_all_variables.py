@@ -754,9 +754,9 @@ def _build_globe(da, title, cmap, vmin, vmax, units, height=450):
             hovertemplate=(
                 "lon: %{customdata[0]:.1f}°<br>"
                 "lat: %{customdata[1]:.1f}°<br>"
-                f"value: %{{surfacecolor:.2f}} {units}<extra></extra>"
+                f"value: %{{customdata[2]:.2f}} {units}<extra></extra>"
             ),
-            customdata=np.dstack([lon2d, lat2d]),
+            customdata=np.dstack([lon2d, lat2d, surf]),
         ),
         go.Scatter3d(
             x=cx, y=cy, z=cz,

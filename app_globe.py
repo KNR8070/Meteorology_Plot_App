@@ -135,12 +135,13 @@ def build_globe(da: xr.DataArray, title: str, cmap: str,
         showscale=True,
         lighting=dict(ambient=0.8, diffuse=0.5, specular=0.1),
         hovertemplate="lon: %{customdata[0]:.1f}°<br>lat: %{customdata[1]:.1f}°<br>"
-                      f"value: %{{surfacecolor:.2f}} {UNITS[var_key]}<extra></extra>",
+                      f"value: %{{customdata[2]:.2f}} {UNITS[var_key]}<extra></extra>",
         customdata=np.dstack([
             np.meshgrid(da.sortby("lon").lon.values,
                         da.sortby("lat").lat.values)[0],
             np.meshgrid(da.sortby("lon").lon.values,
                         da.sortby("lat").lat.values)[1],
+            surf,
         ]),
     )
     coasts = go.Scatter3d(
