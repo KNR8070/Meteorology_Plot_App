@@ -1002,6 +1002,6 @@ else:
 st.write("---")
 st.markdown('''**Details of author**
 Built by: K Narender Reddy
-Email :email: : knreddyiitd@gmail.com
+Email :email: : narender.kangari@ncas.ac.uk
 Web Page :globe_with_meridians: : https://knreddy.online
-Version 1: November, 2024''')
+Version 1.1: June, 2026''')
