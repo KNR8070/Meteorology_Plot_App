@@ -680,6 +680,9 @@ def plot_vertical_rh(var, mon): #var has dim's level and month
 #%% [markdown]
 # Function to covert 0 360 to -180 to 180
 def convert_180_180(ds_var):
+    # New CDS API (cdsapi >= 0.7) names the time dimension 'valid_time'; normalise to 'time'
+    if 'valid_time' in ds_var.dims and 'time' not in ds_var.dims:
+        ds_var = ds_var.rename({'valid_time': 'time'})
     if float(ds_var.lon.values.min()) >= 0:  # only convert 0-360 data; ERA5 is already -180/180
         ds_var.coords['lon'] = (ds_var.coords['lon'] + 180) % 360 - 180
     ds_var2 = ds_var.sortby(ds_var.lon)

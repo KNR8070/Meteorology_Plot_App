@@ -41,6 +41,20 @@ def _all_months(start_year, end_year):
     return years, months
 
 
+def _normalise_coords(ds):
+    """Rename valid_time → time and latitude/longitude → lat/lon if present."""
+    rename = {}
+    if 'valid_time' in ds.dims and 'time' not in ds.dims:
+        rename['valid_time'] = 'time'
+    if 'latitude' in ds.dims:
+        rename['latitude'] = 'lat'
+    if 'longitude' in ds.dims:
+        rename['longitude'] = 'lon'
+    if 'pressure_level' in ds.dims:
+        rename['pressure_level'] = 'level'
+    return ds.rename(rename) if rename else ds
+
+
 def _write(ds, path):
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     ds.to_netcdf(path)
@@ -72,9 +86,7 @@ def fetch_temperature(client, start_year, end_year):
         tmp,
     )
 
-    ds = xr.open_dataset(tmp)
-    # ERA5 single-level: variable is 't2m', coords are 'latitude'/'longitude'
-    ds = ds.rename({'latitude': 'lat', 'longitude': 'lon'})
+    ds = _normalise_coords(xr.open_dataset(tmp))
     if 't2m' in ds:
         ds = ds.rename({'t2m': 'air'})
     ds['air'].attrs['long_name'] = '2m Air Temperature'
@@ -104,10 +116,7 @@ def fetch_wind(client, start_year, end_year):
         tmp,
     )
 
-    ds = xr.open_dataset(tmp)
-    ds = ds.rename({'latitude': 'lat', 'longitude': 'lon'})
-    if 'pressure_level' in ds.dims:
-        ds = ds.rename({'pressure_level': 'level'})
+    ds = _normalise_coords(xr.open_dataset(tmp))
     # ERA5 pressure-level wind variable names: 'u' and 'v'
     rename_map = {}
     if 'u' in ds:
@@ -142,8 +151,7 @@ def fetch_precipitation(client, start_year, end_year):
         tmp,
     )
 
-    ds = xr.open_dataset(tmp)
-    ds = ds.rename({'latitude': 'lat', 'longitude': 'lon'})
+    ds = _normalise_coords(xr.open_dataset(tmp))
     # ERA5 monthly mean tp is in m/day; convert to mm/day to match NCEP
     if 'tp' in ds:
         ds = ds.rename({'tp': 'precip'})
@@ -175,10 +183,7 @@ def fetch_rhum(client, start_year, end_year):
         tmp,
     )
 
-    ds = xr.open_dataset(tmp)
-    ds = ds.rename({'latitude': 'lat', 'longitude': 'lon'})
-    if 'pressure_level' in ds.dims:
-        ds = ds.rename({'pressure_level': 'level'})
+    ds = _normalise_coords(xr.open_dataset(tmp))
     # ERA5 relative humidity variable name: 'r'
     if 'r' in ds:
         ds = ds.rename({'r': 'rhum'})
