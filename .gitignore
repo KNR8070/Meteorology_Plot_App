@@ -1,5 +1,22 @@
+# macOS
 .DS_Store
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+*.ipynb
+
+# Secrets / credentials
 client_secrets.json
+.cdsapirc
+
+# Old / one-off download scripts
 Downlaoad_ERA5_monthly_data.py
-era5_2024_2025.nc
+Download_ERA5_monthly_data.py
 extract_met_data.py
+
+# Legacy ERA5 single-file download (pre-split naming)
+era5_2024_2025.nc
