@@ -705,6 +705,29 @@ _G_UNITS      = {"air": "°C",      "wnd": "m/s",     "precip": "mm/day", "rhum"
 
 
 @st.cache_data
+def _load_clim_for_globe(var_key, month_idx, level=None):
+    """Climatology DataArray with full 360° longitude coverage (no lon slice) for globe plots."""
+    if var_key == "air":
+        ds = convert_180_180(load_temp_data()).sel(lat=slice(85, -85))
+        da = ds["air"].isel(time=month_idx) - 273.15
+        da.name = "air"
+    elif var_key == "wnd":
+        dsu = convert_180_180(load_uwind_data()).sel(lat=slice(85, -85))
+        dsv = convert_180_180(load_vwind_data()).sel(lat=slice(85, -85))
+        u   = dsu["uwnd"].sel(level=level).isel(time=month_idx)
+        v   = dsv["vwnd"].sel(level=level).isel(time=month_idx)
+        da  = np.sqrt(u**2 + v**2)
+        da.name = "wnd"
+    elif var_key == "precip":
+        ds = convert_180_180(load_pr_data()).sel(lat=slice(-85, 85))
+        da = ds["precip"].sortby("lat").isel(time=month_idx)
+    elif var_key == "rhum":
+        ds = convert_180_180(load_rh_data()).sel(lat=slice(85, -85))
+        da = ds["rhum"].sel(level=level).isel(time=month_idx)
+    return da.squeeze()
+
+
+@st.cache_data
 def _globe_coastlines():
     """Return NaN-separated x,y,z arrays for all Natural Earth coastlines on a unit sphere."""
     segments = []
@@ -727,16 +750,30 @@ def _globe_coastlines():
 
 
 def _da_to_sphere_mesh(da):
-    """Convert a 2-D lat/lon DataArray to Cartesian sphere coordinates and surface values."""
+    """Convert a 2-D lat/lon DataArray to Cartesian sphere coordinates, wrapping lon to close seam."""
     da = da.sortby("lat").sortby("lon")
-    lon2d, lat2d = np.meshgrid(da.lon.values.astype(float), da.lat.values.astype(float))
+    lon_vals  = da.lon.values.astype(float)
+    lat_vals  = da.lat.values.astype(float)
+    data_vals = da.values.astype(float)
+
+    # Append the first longitude column at the end so Plotly's mesh closes
+    # seamlessly at the antimeridian instead of cutting across the Pacific.
+    lon_step = float(lon_vals[1] - lon_vals[0]) if len(lon_vals) > 1 else 1.0
+    lon_ext  = np.append(lon_vals, lon_vals[-1] + lon_step)   # closes at ±180°
+    surf_ext = np.hstack([data_vals, data_vals[:, :1]])
+
+    lon2d, lat2d = np.meshgrid(lon_ext, lat_vals)
     theta = np.radians(90.0 - lat2d)
     phi   = np.radians(lon2d)
+
+    # For hover, map the wrapped column back to the original first-lon value
+    lon2d_h, _ = np.meshgrid(np.append(lon_vals, lon_vals[0]), lat_vals)
+
     return (np.sin(theta) * np.cos(phi),
             np.sin(theta) * np.sin(phi),
             np.cos(theta),
-            da.values.astype(float),
-            lon2d, lat2d)
+            surf_ext,
+            lon2d_h, lat2d)
 
 
 def _build_globe(da, title, cmap, vmin, vmax, units, height=450):
@@ -836,27 +873,13 @@ def plot_globe_comparison(var_key, month, level=None):
     """Render three interactive globe panels: climatology | ERA5 current | anomaly."""
     month_name = calendar.month_name[month]
 
-    # climatology DataArray (uses module-level ds_* loaded at startup)
-    if var_key == "air":
-        da_clim = ds_temp["air"].isel(time=month - 1) - 273.15
-        da_clim.name = "air"
-    elif var_key == "wnd":
-        u = ds_u["uwnd"].sel(level=level).isel(time=month - 1)
-        v = ds_v["vwnd"].sel(level=level).isel(time=month - 1)
-        da_clim = np.sqrt(u ** 2 + v ** 2)
-        da_clim.name = "wnd"
-    elif var_key == "precip":
-        da_clim = ds_pr["precip"].sortby("lat").isel(time=month - 1)
-    elif var_key == "rhum":
-        da_clim = ds_rh["rhum"].sel(level=level).isel(time=month - 1)
-    da_clim = da_clim.squeeze()
+    # Climatology — full 360° lon so the seam-wrap closes correctly
+    da_clim = _load_clim_for_globe(var_key, month - 1, level)
 
-    # ERA5 DataArray
+    # ERA5 — also full lon range (no ±176 slice)
     path = _find_era5_file(var_key)
     try:
-        ds_e5 = convert_180_180(xr.open_dataset(path)).sel(
-            lat=slice(85, -85), lon=slice(-176, 176)
-        )
+        ds_e5 = convert_180_180(xr.open_dataset(path)).sel(lat=slice(85, -85))
     except (FileNotFoundError, OSError):
         st.error(f"No ERA5 file found for '{var_key}'. Run scripts/fetch_era5.py first.")
         return

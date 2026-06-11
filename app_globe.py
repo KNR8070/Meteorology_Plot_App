@@ -103,24 +103,32 @@ def _coastline_xyz(r: float = 1.005):
 
 # ── sphere mesh from DataArray ────────────────────────────────────────────────
 def _da_to_sphere(da: xr.DataArray):
-    """Map a 2-D lat/lon DataArray to (x, y, z, surfacecolor) on a unit sphere."""
-    da  = da.sortby("lat").sortby("lon")
-    lon = da.lon.values.astype(float)
-    lat = da.lat.values.astype(float)
+    """Map a 2-D lat/lon DataArray to sphere coordinates, wrapping lon to close the seam."""
+    da        = da.sortby("lat").sortby("lon")
+    lon_vals  = da.lon.values.astype(float)
+    lat_vals  = da.lat.values.astype(float)
+    data_vals = da.values.astype(float)
 
-    lon2d, lat2d = np.meshgrid(lon, lat)
+    # Wrap: append first lon column at end so the mesh closes at ±180°
+    lon_step = float(lon_vals[1] - lon_vals[0]) if len(lon_vals) > 1 else 1.0
+    lon_ext  = np.append(lon_vals, lon_vals[-1] + lon_step)
+    surf_ext = np.hstack([data_vals, data_vals[:, :1]])
+
+    lon2d, lat2d = np.meshgrid(lon_ext, lat_vals)
     theta = np.radians(90.0 - lat2d)
     phi   = np.radians(lon2d)
     x = np.sin(theta) * np.cos(phi)
     y = np.sin(theta) * np.sin(phi)
     z = np.cos(theta)
-    return x, y, z, da.values.astype(float)
+
+    lon2d_h, _ = np.meshgrid(np.append(lon_vals, lon_vals[0]), lat_vals)
+    return x, y, z, surf_ext, lon2d_h, lat2d
 
 
 # ── build a single Plotly figure ──────────────────────────────────────────────
 def build_globe(da: xr.DataArray, title: str, cmap: str,
                 vmin: float, vmax: float, height: int = 650) -> go.Figure:
-    x, y, z, surf = _da_to_sphere(da)
+    x, y, z, surf, lon2d_h, lat2d = _da_to_sphere(da)
     cx, cy, cz = _coastline_xyz()
 
     surface = go.Surface(
@@ -136,13 +144,7 @@ def build_globe(da: xr.DataArray, title: str, cmap: str,
         lighting=dict(ambient=0.8, diffuse=0.5, specular=0.1),
         hovertemplate="lon: %{customdata[0]:.1f}°<br>lat: %{customdata[1]:.1f}°<br>"
                       f"value: %{{customdata[2]:.2f}} {UNITS[var_key]}<extra></extra>",
-        customdata=np.dstack([
-            np.meshgrid(da.sortby("lon").lon.values,
-                        da.sortby("lat").lat.values)[0],
-            np.meshgrid(da.sortby("lon").lon.values,
-                        da.sortby("lat").lat.values)[1],
-            surf,
-        ]),
+        customdata=np.dstack([lon2d_h, lat2d, surf]),
     )
     coasts = go.Scatter3d(
         x=cx, y=cy, z=cz,
@@ -227,21 +229,21 @@ def build_globe(da: xr.DataArray, title: str, cmap: str,
 @st.cache_data
 def get_clim(var_key: str, month_idx: int, level):
     if var_key == "air":
-        ds = convert_180_180(load_temp_data()).sel(lat=slice(85, -85), lon=slice(-176, 176))
+        ds = convert_180_180(load_temp_data()).sel(lat=slice(85, -85), lon=slice(-180, 180))
         da = ds["air"].isel(time=month_idx) - 273.15
         da.name = "air"
     elif var_key == "wnd":
-        ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85, -85), lon=slice(-176, 176))
-        ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(85, -85), lon=slice(-176, 176))
+        ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85, -85), lon=slice(-180, 180))
+        ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(85, -85), lon=slice(-180, 180))
         u  = ds_u["uwnd"].sel(level=level).isel(time=month_idx)
         v  = ds_v["vwnd"].sel(level=level).isel(time=month_idx)
         da = np.sqrt(u ** 2 + v ** 2)
         da.name = "wnd"
     elif var_key == "precip":
-        ds = convert_180_180(load_pr_data()).sel(lat=slice(-85, 85), lon=slice(-176, 176))
+        ds = convert_180_180(load_pr_data()).sel(lat=slice(-85, 85), lon=slice(-180, 180))
         da = ds["precip"].sortby("lat").isel(time=month_idx)
     elif var_key == "rhum":
-        ds = convert_180_180(load_rh_data()).sel(lat=slice(85, -85), lon=slice(-176, 176))
+        ds = convert_180_180(load_rh_data()).sel(lat=slice(85, -85), lon=slice(-180, 180))
         da = ds["rhum"].sel(level=level).isel(time=month_idx)
     return da.squeeze()
 
@@ -252,7 +254,7 @@ def get_era5(var_key: str, month: int, level):
         ds = xr.open_dataset(path)
     except (FileNotFoundError, OSError):
         return None, None
-    ds = convert_180_180(ds).sel(lat=slice(85, -85), lon=slice(-176, 176))
+    ds = convert_180_180(ds).sel(lat=slice(85, -85), lon=slice(-180, 180))
     if var_key == "wnd":
         u  = ds["uwnd"].sel(level=level) if level else ds["uwnd"].isel(level=0)
         v  = ds["vwnd"].sel(level=level) if level else ds["vwnd"].isel(level=0)
