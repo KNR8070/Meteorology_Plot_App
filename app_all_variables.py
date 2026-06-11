@@ -98,8 +98,11 @@ def anomaly_plotting(clim_var,mon, region):
         else:
             var_subset = var_subset.isel(level=0)
 
-    clim_var_subset = clim_var.sel(lat=slice(lat_max, lat_min),
-                                   lon=slice(lon_min, lon_max))
+    # Sort N→S so slice(lat_max, lat_min) works regardless of source lat order
+    # (NCEP precip is S→N; temperature and wind are N→S)
+    clim_var_ns = clim_var.sortby('lat', ascending=False)
+    clim_var_subset = clim_var_ns.sel(lat=slice(lat_max, lat_min),
+                                      lon=slice(lon_min, lon_max))
 
     var_plot_data, year = select_current_year_data(var_subset, mon)
     if var_plot_data is None:
