@@ -153,6 +153,23 @@ def build_globe(da: xr.DataArray, title: str, cmap: str,
     )
 
     fig = go.Figure(data=[surface, coasts])
+
+    # Animation frames: rotate camera 360° around vertical axis
+    n_frames = 72
+    r_eye    = np.sqrt(1.4**2 + 0.5**2)
+    z_eye    = 0.5
+    fig.frames = [
+        go.Frame(
+            layout=dict(scene_camera=dict(eye=dict(
+                x=float(r_eye * np.cos(2 * np.pi * i / n_frames)),
+                y=float(r_eye * np.sin(2 * np.pi * i / n_frames)),
+                z=z_eye,
+            ))),
+            name=str(i),
+        )
+        for i in range(n_frames)
+    ]
+
     fig.update_layout(
         title=dict(text=title, x=0.5, xanchor="center", font=dict(size=15)),
         scene=dict(
@@ -161,11 +178,47 @@ def build_globe(da: xr.DataArray, title: str, cmap: str,
             zaxis=dict(visible=False),
             bgcolor="black",
             aspectmode="cube",
-            camera=dict(eye=dict(x=1.4, y=0.5, z=0.5)),
+            camera=dict(eye=dict(
+                x=float(r_eye * np.cos(0)),
+                y=float(r_eye * np.sin(0)),
+                z=z_eye,
+            )),
         ),
-        margin=dict(l=0, r=0, t=40, b=0),
+        margin=dict(l=0, r=0, t=40, b=40),
         paper_bgcolor="black",
         height=height,
+        updatemenus=[dict(
+            type="buttons",
+            showactive=False,
+            direction="left",
+            x=0.5, xanchor="center",
+            y=0.0, yanchor="bottom",
+            bgcolor="rgba(30,30,30,0.85)",
+            bordercolor="rgba(120,120,120,0.5)",
+            font=dict(color="white", size=12),
+            buttons=[
+                dict(
+                    label="▶  Rotate",
+                    method="animate",
+                    args=[None, dict(
+                        frame=dict(duration=50, redraw=True),
+                        fromcurrent=True,
+                        mode="immediate",
+                        transition=dict(duration=0),
+                        loop=True,
+                    )],
+                ),
+                dict(
+                    label="⏸  Pause",
+                    method="animate",
+                    args=[[None], dict(
+                        frame=dict(duration=0, redraw=False),
+                        mode="immediate",
+                        transition=dict(duration=0),
+                    )],
+                ),
+            ],
+        )],
     )
     return fig
 
