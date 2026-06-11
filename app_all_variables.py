@@ -697,7 +697,7 @@ def convert_180_180(ds_var):
     return ds_var2
 
 # ── Globe plotting helpers ─────────────────────────────────────────────────────
-_G_CMAPS      = {"air": "RdBu_r", "wnd": "Viridis",  "precip": "BrBG",   "rhum": "RdYlGn"}
+_G_CMAPS      = {"air": "RdBu_r", "wnd": "Viridis",  "precip": "YlGnBu", "rhum": "RdYlGn"}
 _G_ANOM_CMAPS = {"air": "RdBu",   "wnd": "RdBu",     "precip": "BrBG",   "rhum": "RdYlGn"}
 _G_CLIM_RANGE = {"air": (-30, 40), "wnd": (0, 20),   "precip": (0, 15),  "rhum": (0, 100)}
 _G_ANOM_RANGE = {"air": (-10, 10), "wnd": (-5, 5),   "precip": (-8, 8),  "rhum": (-20, 20)}
@@ -798,7 +798,7 @@ def _build_globe(da, title, cmap, vmin, vmax, units, height=450):
         go.Scatter3d(
             x=cx, y=cy, z=cz,
             mode="lines",
-            line=dict(color="white", width=0.8),
+            line=dict(color="black", width=2),
             showlegend=False, hoverinfo="none",
         ),
     ])
@@ -900,8 +900,16 @@ def plot_globe_comparison(var_key, month, level=None):
         return
     da_e5_pt = da_e5_pt.squeeze()
 
-    # anomaly: interpolate climatology onto ERA5 grid
-    da_clim_i = da_clim.sortby("lat").interp(
+    # anomaly: wrap climatology lon to 180° before interpolating so ERA5 points
+    # at 178°–179° (beyond NCEP's last grid point at 177.5°) don't become NaN
+    _clim_s    = da_clim.sortby("lat").sortby("lon")
+    _clim_step = float(_clim_s.lon.values[1] - _clim_s.lon.values[0])
+    _clim_w    = xr.concat(
+        [_clim_s,
+         _clim_s.isel(lon=0).assign_coords(lon=float(_clim_s.lon.values[-1] + _clim_step))],
+        dim="lon",
+    )
+    da_clim_i = _clim_w.interp(
         lat=np.sort(da_e5_pt.lat.values),
         lon=np.sort(da_e5_pt.lon.values),
         method="linear",

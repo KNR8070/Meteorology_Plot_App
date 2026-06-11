@@ -40,7 +40,7 @@ VAR_OPTS = {
 CMAPS = {
     "air":    "RdBu_r",
     "wnd":    "Viridis",
-    "precip": "BrBG",
+    "precip": "YlGnBu",
     "rhum":   "RdYlGn",
 }
 ANOM_CMAPS = {
@@ -73,7 +73,7 @@ if var_key in ("wnd", "rhum"):
     level_sel = int(st.sidebar.selectbox("Pressure level (hPa)",
                                           src_ds["level"].values))
 
-coastline_color = st.sidebar.color_picker("Coastline colour", "#ffffff")
+coastline_color = st.sidebar.color_picker("Coastline colour", "#000000")
 
 
 # ── coastlines (cached) ───────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ def build_globe(da: xr.DataArray, title: str, cmap: str,
     coasts = go.Scatter3d(
         x=cx, y=cy, z=cz,
         mode="lines",
-        line=dict(color=coastline_color, width=1),
+        line=dict(color=coastline_color, width=2),
         hoverinfo="none",
         showlegend=False,
     )
@@ -277,7 +277,14 @@ def get_anomaly(var_key, month, level):
     if da_era5 is None:
         return None, None, None
     da_clim = get_clim(var_key, month - 1, level)
-    da_clim_i = da_clim.sortby("lat").interp(
+    _clim_s    = da_clim.sortby("lat").sortby("lon")
+    _clim_step = float(_clim_s.lon.values[1] - _clim_s.lon.values[0])
+    _clim_w    = xr.concat(
+        [_clim_s,
+         _clim_s.isel(lon=0).assign_coords(lon=float(_clim_s.lon.values[-1] + _clim_step))],
+        dim="lon",
+    )
+    da_clim_i = _clim_w.interp(
         lat=np.sort(da_era5.lat.values),
         lon=np.sort(da_era5.lon.values),
         method="linear",
