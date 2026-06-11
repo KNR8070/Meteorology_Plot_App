@@ -19,6 +19,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.feature import ShapelyFeature
 import calendar
+import plotly.graph_objects as go
 import cmcrameri.cm as cmc
 from streamlit_option_menu import option_menu
 import geopandas as gpd
@@ -694,6 +695,169 @@ def convert_180_180(ds_var):
     if len(unique_idx) < len(ds_var2.lon):
         ds_var2 = ds_var2.isel(lon=sorted(unique_idx.tolist()))
     return ds_var2
+
+# ── Globe plotting helpers ─────────────────────────────────────────────────────
+_G_CMAPS      = {"air": "RdBu_r", "wnd": "Viridis",  "precip": "BrBG",   "rhum": "RdYlGn"}
+_G_ANOM_CMAPS = {"air": "RdBu",   "wnd": "RdBu",     "precip": "BrBG",   "rhum": "RdYlGn"}
+_G_CLIM_RANGE = {"air": (-30, 40), "wnd": (0, 20),   "precip": (0, 15),  "rhum": (0, 100)}
+_G_ANOM_RANGE = {"air": (-10, 10), "wnd": (-5, 5),   "precip": (-8, 8),  "rhum": (-20, 20)}
+_G_UNITS      = {"air": "°C",      "wnd": "m/s",     "precip": "mm/day", "rhum": "%"}
+
+
+@st.cache_data
+def _globe_coastlines():
+    """Return NaN-separated x,y,z arrays for all Natural Earth coastlines on a unit sphere."""
+    segments = []
+    for geom in cfeature.COASTLINE.geometries():
+        lines = list(geom.geoms) if hasattr(geom, "geoms") else [geom]
+        for line in lines:
+            coords = np.array(line.coords)
+            if len(coords) < 2:
+                continue
+            lr    = np.radians(coords[:, 0])
+            latr  = np.radians(coords[:, 1])
+            theta = np.pi / 2 - latr
+            x = 1.005 * np.sin(theta) * np.cos(lr)
+            y = 1.005 * np.sin(theta) * np.sin(lr)
+            z = 1.005 * np.cos(theta)
+            segments.append(np.column_stack([x, y, z]))
+    nan_row  = np.full((1, 3), np.nan)
+    combined = np.vstack([np.vstack([s, nan_row]) for s in segments])
+    return combined[:, 0], combined[:, 1], combined[:, 2]
+
+
+def _da_to_sphere_mesh(da):
+    """Convert a 2-D lat/lon DataArray to Cartesian sphere coordinates and surface values."""
+    da = da.sortby("lat").sortby("lon")
+    lon2d, lat2d = np.meshgrid(da.lon.values.astype(float), da.lat.values.astype(float))
+    theta = np.radians(90.0 - lat2d)
+    phi   = np.radians(lon2d)
+    return (np.sin(theta) * np.cos(phi),
+            np.sin(theta) * np.sin(phi),
+            np.cos(theta),
+            da.values.astype(float),
+            lon2d, lat2d)
+
+
+def _build_globe(da, title, cmap, vmin, vmax, units, height=450):
+    """Return an interactive Plotly 3-D globe figure for a 2-D DataArray."""
+    x, y, z, surf, lon2d, lat2d = _da_to_sphere_mesh(da)
+    cx, cy, cz = _globe_coastlines()
+    fig = go.Figure([
+        go.Surface(
+            x=x, y=y, z=z,
+            surfacecolor=surf,
+            colorscale=cmap,
+            cmin=vmin, cmax=vmax,
+            colorbar=dict(title=dict(text=units, side="right"), thickness=12, len=0.5),
+            lighting=dict(ambient=0.8, diffuse=0.4, specular=0.05),
+            hovertemplate=(
+                "lon: %{customdata[0]:.1f}°<br>"
+                "lat: %{customdata[1]:.1f}°<br>"
+                f"value: %{{surfacecolor:.2f}} {units}<extra></extra>"
+            ),
+            customdata=np.dstack([lon2d, lat2d]),
+        ),
+        go.Scatter3d(
+            x=cx, y=cy, z=cz,
+            mode="lines",
+            line=dict(color="white", width=0.8),
+            showlegend=False, hoverinfo="none",
+        ),
+    ])
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor="center", font=dict(size=12, color="white")),
+        scene=dict(
+            xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(visible=False),
+            bgcolor="black", aspectmode="cube",
+            camera=dict(eye=dict(x=1.4, y=0.5, z=0.5)),
+        ),
+        margin=dict(l=0, r=0, t=35, b=0),
+        paper_bgcolor="black",
+        height=height,
+    )
+    return fig
+
+
+def plot_globe_comparison(var_key, month, level=None):
+    """Render three interactive globe panels: climatology | ERA5 current | anomaly."""
+    month_name = calendar.month_name[month]
+
+    # climatology DataArray (uses module-level ds_* loaded at startup)
+    if var_key == "air":
+        da_clim = ds_temp["air"].isel(time=month - 1) - 273.15
+        da_clim.name = "air"
+    elif var_key == "wnd":
+        u = ds_u["uwnd"].sel(level=level).isel(time=month - 1)
+        v = ds_v["vwnd"].sel(level=level).isel(time=month - 1)
+        da_clim = np.sqrt(u ** 2 + v ** 2)
+        da_clim.name = "wnd"
+    elif var_key == "precip":
+        da_clim = ds_pr["precip"].sortby("lat").isel(time=month - 1)
+    elif var_key == "rhum":
+        da_clim = ds_rh["rhum"].sel(level=level).isel(time=month - 1)
+    da_clim = da_clim.squeeze()
+
+    # ERA5 DataArray
+    path = _find_era5_file(var_key)
+    try:
+        ds_e5 = convert_180_180(xr.open_dataset(path)).sel(
+            lat=slice(85, -85), lon=slice(-176, 176)
+        )
+    except (FileNotFoundError, OSError):
+        st.error(f"No ERA5 file found for '{var_key}'. Run scripts/fetch_era5.py first.")
+        return
+    if var_key == "wnd":
+        u5 = ds_e5["uwnd"].sel(level=level) if level is not None else ds_e5["uwnd"].isel(level=0)
+        v5 = ds_e5["vwnd"].sel(level=level) if level is not None else ds_e5["vwnd"].isel(level=0)
+        da_e5 = np.sqrt(u5 ** 2 + v5 ** 2)
+        da_e5.name = "wnd"
+    else:
+        da_e5 = ds_e5[var_key]
+        if "level" in da_e5.dims:
+            da_e5 = da_e5.sel(level=level) if level is not None else da_e5.isel(level=0)
+        if var_key == "air":
+            da_e5 = da_e5 - 273.15
+    da_e5_pt, year = select_current_year_data(da_e5, month)
+    if da_e5_pt is None:
+        st.error(f"No ERA5 data found for month {month}. Cannot show globe view.")
+        return
+    da_e5_pt = da_e5_pt.squeeze()
+
+    # anomaly: interpolate climatology onto ERA5 grid
+    da_clim_i = da_clim.sortby("lat").interp(
+        lat=np.sort(da_e5_pt.lat.values),
+        lon=np.sort(da_e5_pt.lon.values),
+        method="linear",
+    )
+    anom = da_e5_pt.sortby(["lat", "lon"]) - da_clim_i
+
+    units    = _G_UNITS[var_key]
+    vmin_c, vmax_c = _G_CLIM_RANGE[var_key]
+    vmin_a, vmax_a = _G_ANOM_RANGE[var_key]
+
+    with st.spinner("Building globes …"):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.plotly_chart(
+                _build_globe(da_clim, f"Climatology – {month_name}",
+                             _G_CMAPS[var_key], vmin_c, vmax_c, units),
+                use_container_width=True)
+            st.caption("NCEP 1991–2020 climatology")
+        with c2:
+            st.plotly_chart(
+                _build_globe(da_e5_pt, f"ERA5 – {month_name} {year}",
+                             _G_CMAPS[var_key], vmin_c, vmax_c, units),
+                use_container_width=True)
+            st.caption(f"ERA5 · {month_name} {year}")
+        with c3:
+            st.plotly_chart(
+                _build_globe(anom, f"Anomaly – {month_name} {year}",
+                             _G_ANOM_CMAPS[var_key], vmin_a, vmax_a, units),
+                use_container_width=True)
+            st.caption(f"ERA5 {year} − Climatology")
+
+# ── end of globe helpers ───────────────────────────────────────────────────────
 #%% [markdown]
 # function to get the user input spatial box for plotting
 def user_input_box(lat,lon):
@@ -762,6 +926,7 @@ lon = ds_temp['lon']
 lat = ds_temp['lat']
 
 anomaly_plt = False
+globe_plt = False
 
 regions = ['Global', 'India', 'USA', 'Europe', 'Russia', 'China', 'Japan', 'Australia', 'Africa', 'South America'] 
 #%% [markdown]
@@ -824,15 +989,18 @@ if var_type == 'Wind':
                                        lon=slice(lon_min, lon_max),
                                        level=level_sel)
         anomaly_plt = st.sidebar.checkbox('Show wind speed anomaly for selected region and month')
-        if anomaly_plt:
+        globe_plt = st.sidebar.checkbox('View on Globe')
+        if globe_plt:
+            plot_globe_comparison('wnd', time_sel, int(level_sel))
+        elif anomaly_plt:
             col1, col2 = st.columns(2)
             with col1:
-                plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:], 
+                plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:],
                                   lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
             with col2:
                 plot_wind_speed_anomaly(ds_u, ds_v, lat_min, lat_max, lon_min, lon_max, level_sel, time_sel, region_sel)
         else:
-            plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:], 
+            plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:],
                               lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
 
     elif plot_type == "Time Series":
@@ -879,15 +1047,18 @@ elif var_type == 'Temp_2m':
 
         
         anomaly_plt = st.sidebar.checkbox('Check Anomaly for the month selected \n in the year 2024 or 2025')
-        if anomaly_plt:
+        globe_plt = st.sidebar.checkbox('View on Globe')
+        if globe_plt:
+            plot_globe_comparison('air', time_sel)
+        elif anomaly_plt:
             col1, col2 = st.columns(2)
             with col1:
-                plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, 
+                plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max,
                       lon_min, lon_max,time_sel, region_sel)
             with col2:
                 anomaly_plotting(ds_temp_subset.sel(level=2),time_sel, region_sel)
         else:
-            plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max, 
+            plot_spatial2(ds_temp_subset.sel(level=2), lat_min, lat_max,
                       lon_min, lon_max,time_sel, region_sel)
     else:
         st.header("Time series plot")
@@ -922,7 +1093,10 @@ elif var_type == 'Precipitation':
         ds_pr_subset = ds_pr['precip'].sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         anomaly_plt = st.sidebar.checkbox('Check anomaly for the selected month')
-        if anomaly_plt:
+        globe_plt = st.sidebar.checkbox('View on Globe')
+        if globe_plt:
+            plot_globe_comparison('precip', time_sel)
+        elif anomaly_plt:
             col1, col2 = st.columns(2)
             with col1:
                 plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
@@ -964,7 +1138,10 @@ else: #Relative Humidity
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
         anomaly_plt = st.sidebar.checkbox('Check anomaly for the selected month')
-        if anomaly_plt:
+        globe_plt = st.sidebar.checkbox('View on Globe')
+        if globe_plt:
+            plot_globe_comparison('rhum', time_sel, int(level_sel))
+        elif anomaly_plt:
             col1, col2 = st.columns(2)
             with col1:
                 plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
@@ -993,7 +1170,7 @@ else: #Relative Humidity
 # %%
 # %% [markdown]
 st.write("---")
-if anomaly_plt:
+if anomaly_plt or globe_plt:
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"Climatology Data Source: {ds_temp.attrs['source']}")
