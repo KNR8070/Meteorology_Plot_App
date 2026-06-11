@@ -8,6 +8,7 @@ Created on Fri Nov  8 20:54:39 2024
 #%% [markdown]
 ## load modules
 
+import glob
 import streamlit as st
 import xarray as xr
 import numpy as np
@@ -54,148 +55,338 @@ def load_rh_data():
     ds_rh = xr.open_dataset("data/rhum.mon.ltm.1991-2020.nc")
     return ds_rh
 
+def _find_era5_file(var_name):
+    """Return the path to the most recent era5_*_<var_name>.nc file in data/."""
+    files = sorted(glob.glob(f'data/era5_*_{var_name}.nc'))
+    return files[-1] if files else f'data/era5_2024_2025_{var_name}.nc'
+
+
+def _add_map_features(ax, region):
+    if region in ('India', 'China'):
+        India = load_shapefile()
+        shape_feature = ShapelyFeature(India.geometry, ccrs.PlateCarree(),
+                                       edgecolor='black', facecolor='none')
+        ax.add_feature(shape_feature, linewidth=1.0, facecolor='none')
+        if region == 'China':
+            ax.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax.add_feature(cfeature.COASTLINE)
+    elif region == 'Global':
+        ax.add_feature(cfeature.COASTLINE)
+    else:
+        ax.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax.add_feature(cfeature.COASTLINE)
+
+
 # %% Anomaly plotting
 def anomaly_plotting(clim_var,mon, region):
     [lat_min, lat_max, lon_min, lon_max] = user_input_region(region)
-    # Load the data
-    var_data = xr.open_dataset('data/era5_2024_2025_'+ clim_var.name+'.nc')
-    var_data = convert_180_180(var_data).sel(lat=slice(85,-85),lon=slice(-176,176))
+    data_path = _find_era5_file(clim_var.name)
+
+    try:
+        var_data = xr.open_dataset(data_path)
+    except FileNotFoundError:
+        st.error(f"Current data file not found: {data_path}. Cannot compute anomaly.")
+        return
+
+    var_data = convert_180_180(var_data).sel(lat=slice(85,-85), lon=slice(-176,176))
     var_subset = var_data[clim_var.name].sel(lat=slice(lat_max, lat_min), 
-                                        lon=slice(lon_min, lon_max),
-                                        level=1000)
+                                             lon=slice(lon_min, lon_max))
+
+    if 'level' in var_subset.dims:
+        if 1000 in var_subset.level.values:
+            var_subset = var_subset.sel(level=1000)
+        else:
+            var_subset = var_subset.isel(level=0)
+
     clim_var_subset = clim_var.sel(lat=slice(lat_max, lat_min),
-                                    lon=slice(lon_min, lon_max))
-    
-    if len(var_subset.time[var_subset.time.dt.month == mon]) == 2:
-        year = np.unique(var_subset.time.dt.year.values)[1]
-        sub_data = var_subset[var_subset.time.dt.year == year]
-        var_plot_data = np.squeeze(sub_data.isel(time=mon-1))-273.15
+                                   lon=slice(lon_min, lon_max))
+
+    var_plot_data, year = select_current_year_data(var_subset, mon)
+    if var_plot_data is None:
+        st.error(f"No data found for month {mon} in current dataset.")
+        return
+
+    # Interpolate climatology to the ERA5 grid (2.5° NCEP → 0.25° ERA5).
+    # Use .values to pass bare numpy arrays — avoids a time-coordinate type conflict
+    # (ERA5 uses datetime64 while NCEP climatology uses cftime.DatetimeGregorian).
+    clim_interp = clim_var_subset.interp(lat=var_plot_data.lat.values, lon=var_plot_data.lon.values, method='linear')
+
+    if clim_var.var_desc == 'Air temperature':
+        clim_plot_data = np.squeeze(clim_interp.isel(time=mon-1))
+        plot_data = var_plot_data - clim_plot_data  # both in K; difference equals °C anomaly
+        cmap = cmc.vik
+        vmin, vmax = -20, 20
+        plot_label = '2m Temperature Anomaly (°C)'
+    elif clim_var.var_desc == 'Precipitation':
+        clim_plot_data = np.squeeze(clim_interp.isel(time=mon-1))
+        plot_data = var_plot_data - clim_plot_data
+        cmap = cmc.broc
+        vmin, vmax = -15, 15
+        plot_label = 'Precipitation Anomaly (mm/day)'
+    elif clim_var.var_desc == 'Relative humidity':
+        clim_plot_data = np.squeeze(clim_interp.isel(time=mon-1))
+        plot_data = var_plot_data - clim_plot_data
+        cmap = cmc.vik
+        vmin, vmax = -30, 30
+        plot_label = 'Relative Humidity Anomaly (%)'
     else:
-        year = np.unique(var_subset.time.dt.year.values)[0]
-        sub_data = var_subset[var_subset.time.dt.year == year]
-        var_plot_data = np.squeeze(sub_data.isel(time=mon-1))-273.15
+        st.error('Anomaly plotting is available only for temperature, precipitation, and humidity.')
+        return
+
 ###### Plotting
     x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
     fig, ax3 = plt.subplots(figsize=(x_size,y_size),
-                            subplot_kw={'projection': ccrs.PlateCarree()})#,
-    ax3.set_extent([var_subset.lon.values.min(),#lon_min,
-                    var_subset.lon.values.max(),#lon_max, 
-                    var_subset.lat.values.min(),#lat_min,
-                    var_subset.lat.values.max()],#lat_max,], 
-                    crs=ccrs.PlateCarree()) 
-    India = load_shapefile()
-    shape_feature = ShapelyFeature(India.geometry,
-                                ccrs.PlateCarree(), edgecolor='black', 
-                                facecolor='none')
-    if (region != 'Global') and (region != 'India') and (region != 'China'):  
-        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
-        ax3.add_feature(cfeature.COASTLINE)
-    elif (region == 'India'):
-        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
-        #India.plot(facecolor='none',edgecolor='black',ax=ax3)
-        ax3.add_feature(cfeature.COASTLINE)
-    elif (region == 'China'):
-        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
-        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
-        ax3.add_feature(cfeature.COASTLINE)
-    else:
-        ax3.add_feature(cfeature.COASTLINE)
-    # Plot contour fill for wind speed
-    lons, lats = np.meshgrid(clim_var.lon, clim_var.lat)
-    level_in_feet = {"1000.0": 'Surface',
-                     "925.0": '3000 ft',
-                     "850.0": '5000 ft',
-                     "700.0": '10000 ft',
-                     "500.0": '18000 ft'}
+                            subplot_kw={'projection': ccrs.PlateCarree()})
+    ax3.set_extent([var_subset.lon.values.min(),
+                    var_subset.lon.values.max(),
+                    var_subset.lat.values.min(),
+                    var_subset.lat.values.max()],
+                    crs=ccrs.PlateCarree())
+    _add_map_features(ax3, region)
 
-    if clim_var.var_desc=='Air temperature':
-        clim_plot_data = np.squeeze(clim_var_subset.isel(time=mon-1))-273.15
-        plot_data = var_plot_data - clim_plot_data
-        s_plot = ax3.contourf(lons,lats,plot_data,
-                              cmap=cmc.vik, 
-                              vmin=-20, vamx=20,
-                              levels=np.linspace(-20,20,41),
-                              extend='both')
-        if x_size<y_size:
-            cbar = fig.colorbar(s_plot, ax=ax3,shrink=0.3)# label="2m Temperature (degC)",                  
-        else:
-            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="2m Temperature (degC)", 
-        cbar.set_label('2m Temperature (degC)',size='xx-small')
-        ax3.set_title('Anomaly in '+calendar.month_name[mon]+'  '+ str(year)+ 
-                      ' compared to 1991-2021 clim.', size='x-small')            
-        
+    # plot_data is on the ERA5 grid after interpolation — use its coords for the meshgrid
+    lons, lats = np.meshgrid(var_plot_data.lon, var_plot_data.lat)
+    s_plot = ax3.contourf(lons, lats, plot_data,
+                          cmap=cmap,
+                          vmin=vmin, vmax=vmax,
+                          levels=np.linspace(vmin, vmax, 41),
+                          extend='both')
+
+    if x_size < y_size:
+        cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)
     else:
-        plot_data = np.squeeze(var_subset.isel(time=mon-1))
-        s_plot = ax3.contourf(lons,lats,plot_data,
-                              cmap=cmc.batlowW, 
-                              vmin=0,vmax=100,
-                              levels=np.linspace(0,100,26))
-        if x_size<y_size:
-            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)# label="Relative humidity (%)",                     
-        else:
-            cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)# label="Relative humidity (%)",                  
-        cbar.set_label('Relative humidity (%)',size='xx-small')
-        if str(var_subset.level.values) in level_in_feet:
-            ax3.set_title('Month:'+calendar.month_name[mon]+
-                         '  Level:'+str(var_subset.level.values)+
-                         ' '+var_subset.level.GRIB_name+' ('+level_in_feet[str(var_subset.level.values)]+')', 
-                         size='medium')
-        else:
-            ax3.set_title('Month:'+calendar.month_name[mon]+
-                         '  Level:'+str(var_subset.level.values)+
-                         ' '+var_subset.level.GRIB_name,
-                         size='medium')  
+        cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)
+    cbar.set_label(plot_label, size='xx-small')
+    ax3.set_title('Anomaly in '+calendar.month_name[mon]+' '+ str(year)+' compared to 1991-2021 clim.', size='x-small')
     cbar.ax.tick_params(labelsize='xx-small')
-    
-    #ax3.set_title(calendar.month_name[mon][:3],size='small')
-    #ax3.set_title('Month:'+calendar.month_name[mon][:3]+
-    #             '  Level:'+str(var_subset.level.values)+
-    #             ' '+var_subset.level.GRIB_name, size='x-small')
-    
-    
 
     ax3.set_xlabel('Longitude',size='x-small')
     ax3.set_ylabel('Latitude',size='x-small')
 
-    ax3.set_xticks(np.linspace(np.floor(clim_var.lon.values.min()),#lon_min,
-                               np.floor(clim_var.lon.values.max()),#lon_max,
-                               num=5,endpoint=True))#format='%2.2f'))
-    ax3.set_yticks(np.linspace(np.floor(clim_var.lat.values.min()),#lat_min,
-                               np.floor(clim_var.lat.values.max()),#lat_max,
-                               num=5,endpoint=True))#,format='%2.2f'))
-    ax3.set_xticklabels(np.linspace(np.floor(clim_var.lon.values.min()),#lon_min,
-                                    np.floor(clim_var.lon.values.max()),#lon_max,
-                                    num=5,endpoint=True),#format='%2.2f'),
+    ax3.set_xticks(np.linspace(np.floor(var_plot_data.lon.values.min()),
+                               np.floor(var_plot_data.lon.values.max()),
+                               num=5,endpoint=True))
+    ax3.set_yticks(np.linspace(np.floor(var_plot_data.lat.values.min()),
+                               np.floor(var_plot_data.lat.values.max()),
+                               num=5,endpoint=True))
+    ax3.set_xticklabels(np.linspace(np.floor(var_plot_data.lon.values.min()),
+                                    np.floor(var_plot_data.lon.values.max()),
+                                    num=5,endpoint=True),
                                     size='xx-small')
-    ax3.set_yticklabels(np.linspace(np.floor(clim_var.lat.values.min()),#lat_min,
-                                    np.floor(clim_var.lat.values.max()),#lat_max,
-                                    num=5,endpoint=True),#format='%2.2f'),
+    ax3.set_yticklabels(np.linspace(np.floor(var_plot_data.lat.values.min()),
+                                    np.floor(var_plot_data.lat.values.max()),
+                                    num=5,endpoint=True),
                                     size='xx-small')
     st.pyplot(fig)
+
+
+def select_current_year_data(var_subset, mon):
+    month_subset = var_subset.sel(time=var_subset.time.dt.month == mon)
+    if len(month_subset.time) == 0:
+        return None, None
+    years = np.unique(month_subset.time.dt.year.values)
+    year = int(years[-1])
+    year_data = month_subset.sel(time=month_subset.time.dt.year == year)
+    return year_data.isel(time=0), year
+
+
+def plot_wind_speed_anomaly(ds_u_clim, ds_v_clim, lat_min, lat_max, lon_min, lon_max, level_sel, mon, region):
+    data_path = _find_era5_file('wnd')
+    try:
+        ds_current = xr.open_dataset(data_path)
+    except FileNotFoundError:
+        st.error(f"Current wind data file not found: {data_path}. Cannot compute wind anomaly.")
+        return
+
+    ds_current = convert_180_180(ds_current).sel(lat=slice(85,-85), lon=slice(-176,176))
+    u_current = ds_current['uwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max), level=level_sel)
+    v_current = ds_current['vwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max), level=level_sel)
+
+    u_current_sel, year = select_current_year_data(u_current, mon)
+    v_current_sel, _ = select_current_year_data(v_current, mon)
+    if u_current_sel is None or v_current_sel is None:
+        st.error(f"No wind data found for month {mon} in current dataset.")
+        return
+
+    current_speed = np.sqrt(u_current_sel**2 + v_current_sel**2)
+    clim_u = ds_u_clim['uwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max), level=level_sel).isel(time=mon-1)
+    clim_v = ds_v_clim['vwnd'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max), level=level_sel).isel(time=mon-1)
+    clim_speed = np.sqrt(clim_u**2 + clim_v**2)
+    clim_speed_interp = clim_speed.interp(lat=current_speed.lat.values, lon=current_speed.lon.values, method='linear')
+
+    plot_data = current_speed - clim_speed_interp
+
+    x_size, y_size = calculate_x_y_size(lat_min, lat_max, lon_min, lon_max)
+    fig, ax3 = plt.subplots(figsize=(x_size,y_size), subplot_kw={'projection': ccrs.PlateCarree()})
+    ax3.set_extent([plot_data.lon.values.min(), plot_data.lon.values.max(), plot_data.lat.values.min(), plot_data.lat.values.max()], crs=ccrs.PlateCarree())
+    _add_map_features(ax3, region)
+
+    lons, lats = np.meshgrid(plot_data.lon, plot_data.lat)
+    s_plot = ax3.contourf(lons, lats, plot_data, cmap=cmc.vik, vmin=-10, vmax=10, levels=np.linspace(-10, 10, 41), extend='both')
+    if x_size < y_size:
+        cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.3)
+    else:
+        cbar = fig.colorbar(s_plot, ax=ax3, shrink=0.5)
+    cbar.set_label('Wind Speed Anomaly (m/s)', size='xx-small')
+    ax3.set_title('Wind speed anomaly in '+calendar.month_name[mon]+' '+ str(year)+' compared to 1991-2021 clim.', size='x-small')
+    cbar.ax.tick_params(labelsize='xx-small')
+
+    ax3.set_xlabel('Longitude', size='x-small')
+    ax3.set_ylabel('Latitude', size='x-small')
+    ax3.set_xticks(np.linspace(np.floor(plot_data.lon.values.min()), np.floor(plot_data.lon.values.max()), num=5, endpoint=True))
+    ax3.set_yticks(np.linspace(np.floor(plot_data.lat.values.min()), np.floor(plot_data.lat.values.max()), num=5, endpoint=True))
+    ax3.set_xticklabels(np.linspace(np.floor(plot_data.lon.values.min()), np.floor(plot_data.lon.values.max()), num=5, endpoint=True), size='xx-small')
+    ax3.set_yticklabels(np.linspace(np.floor(plot_data.lat.values.min()), np.floor(plot_data.lat.values.max()), num=5, endpoint=True), size='xx-small')
+    st.pyplot(fig)
+
+def _load_era5_point(var_name, lat_loc, lon_loc):
+    """Load ERA5 file and return a 1-D time series at the nearest grid point.
+    Uses isel+argmin to avoid InvalidIndexError from duplicate coords after lon wrapping."""
+    data_path = _find_era5_file(var_name)
+    try:
+        ds = xr.open_dataset(data_path)
+    except FileNotFoundError:
+        return None, data_path
+    ds = convert_180_180(ds).sel(lat=slice(85, -85), lon=slice(-176, 176))
+    arr = ds[var_name]
+    lat_idx = int(np.abs(arr.lat - lat_loc).argmin())
+    lon_idx = int(np.abs(arr.lon - lon_loc).argmin())
+    return arr.isel(lat=lat_idx, lon=lon_idx), None
+
+
+def plot_time_series_with_anomaly(clim_var_loc, lat_loc, lon_loc):
+    """Climatology time series (left axis) overlaid with ERA5 anomaly bars (right axis)."""
+    var_loc, missing = _load_era5_point(clim_var_loc.name, lat_loc, lon_loc)
+    if var_loc is None:
+        st.warning(f"ERA5 file not found ({missing}). Showing climatology only.")
+        plot_time_series2(clim_var_loc)
+        return
+
+    if 'level' in var_loc.dims:
+        var_loc = var_loc.sel(level=1000) if 1000 in var_loc.level.values else var_loc.isel(level=0)
+
+    months = np.arange(1, 13)
+    anomalies, year_labels = [], []
+    for mon in months:
+        era5_val, year = select_current_year_data(var_loc, mon)
+        if era5_val is None:
+            anomalies.append(np.nan)
+            year_labels.append(None)
+        else:
+            anomalies.append(float(era5_val.values) - float(clim_var_loc.isel(time=mon - 1).values))
+            year_labels.append(year)
+
+    year_str = '/'.join(str(y) for y in sorted(set(y for y in year_labels if y is not None)))
+
+    if clim_var_loc.var_desc == 'Air temperature':
+        clim_vals = clim_var_loc.values - 273.15
+        clim_ylabel = '2m Temperature (°C)'
+        anom_ylabel = 'Anomaly (°C)'
+    elif clim_var_loc.var_desc == 'Precipitation':
+        clim_vals = clim_var_loc.values
+        clim_ylabel = 'Precipitation (mm/day)'
+        anom_ylabel = 'Anomaly (mm/day)'
+    else:
+        clim_vals = clim_var_loc.values
+        clim_ylabel = 'Relative Humidity (%)'
+        anom_ylabel = 'Anomaly (%)'
+
+    fig, ax1 = plt.subplots(figsize=(12, 5))
+    clim_color = 'tab:blue'
+    ax1.plot(months, clim_vals, color=clim_color, linewidth=2, marker='o', markersize=4,
+             label='Climatology (1991-2021)')
+    ax1.set_xlabel('Month')
+    ax1.set_ylabel(clim_ylabel, color=clim_color, fontsize=12)
+    ax1.tick_params(axis='y', labelcolor=clim_color)
+    ax1.set_xticks(months)
+    ax1.set_xticklabels(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
+
+    ax2 = ax1.twinx()
+    bar_colors = ['#d73027' if (not np.isnan(a) and a > 0) else '#4575b4' for a in anomalies]
+    ax2.bar(months, np.nan_to_num(anomalies), color=bar_colors, alpha=0.55,
+            edgecolor='black', linewidth=0.5, label=f'{year_str} Anomaly')
+    ax2.axhline(0, color='black', linewidth=0.8, linestyle='--')
+    ax2.set_ylabel(anom_ylabel, fontsize=12)
+
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper right', fontsize=9)
+    ax1.set_title(f'Climatology & anomaly at ({lat_loc:.1f}°N, {lon_loc:.1f}°E) — {year_str} vs 1991-2021')
+    ax1.text(0.7, -0.1, 'Data Source: ' + ds_temp.attrs['source'], fontsize=6, transform=ax1.transAxes)
+    st.pyplot(fig)
+
+
+def plot_wind_time_series_with_anomaly(speed_clim, direction_clim, lat_loc, lon_loc, level_sel):
+    """Wind speed climatology (left axis) overlaid with ERA5 wind speed anomaly bars (right axis)."""
+    data_path = _find_era5_file('wnd')
+    try:
+        ds_current = xr.open_dataset(data_path)
+    except FileNotFoundError:
+        st.warning(f"ERA5 wind file not found. Showing climatology only.")
+        plot_time_series(speed_clim, direction_clim)
+        return
+
+    ds_current = convert_180_180(ds_current).sel(lat=slice(85, -85), lon=slice(-176, 176))
+    lat_idx = int(np.abs(ds_current.lat - lat_loc).argmin())
+    lon_idx = int(np.abs(ds_current.lon - lon_loc).argmin())
+    u_loc = ds_current['uwnd'].isel(lat=lat_idx, lon=lon_idx).sel(level=level_sel)
+    v_loc = ds_current['vwnd'].isel(lat=lat_idx, lon=lon_idx).sel(level=level_sel)
+
+    months = np.arange(1, 13)
+    anomalies, year_labels = [], []
+    for mon in months:
+        u_val, year = select_current_year_data(u_loc, mon)
+        v_val, _ = select_current_year_data(v_loc, mon)
+        if u_val is None or v_val is None:
+            anomalies.append(np.nan)
+            year_labels.append(None)
+        else:
+            era5_spd = float(np.sqrt(u_val**2 + v_val**2))
+            clim_spd = float(speed_clim.isel(time=mon - 1).values)
+            anomalies.append(era5_spd - clim_spd)
+            year_labels.append(year)
+
+    year_str = '/'.join(str(y) for y in sorted(set(y for y in year_labels if y is not None)))
+
+    fig, ax1 = plt.subplots(figsize=(12, 5))
+    clim_color = 'tab:blue'
+    ax1.plot(months, speed_clim.values, color=clim_color, linewidth=2, marker='o', markersize=4,
+             label='Climatology (1991-2021)')
+    ax1.set_xlabel('Month')
+    ax1.set_ylabel('Wind Speed (m/s)', color=clim_color, fontsize=12)
+    ax1.tick_params(axis='y', labelcolor=clim_color)
+    ax1.set_xticks(months)
+    ax1.set_xticklabels(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
+
+    ax2 = ax1.twinx()
+    bar_colors = ['#d73027' if (not np.isnan(a) and a > 0) else '#4575b4' for a in anomalies]
+    ax2.bar(months, np.nan_to_num(anomalies), color=bar_colors, alpha=0.55,
+            edgecolor='black', linewidth=0.5, label=f'{year_str} Anomaly')
+    ax2.axhline(0, color='black', linewidth=0.8, linestyle='--')
+    ax2.set_ylabel('Anomaly (m/s)', fontsize=12)
+
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper right', fontsize=9)
+    ax1.set_title(f'Wind speed climatology & anomaly at ({lat_loc:.1f}°N, {lon_loc:.1f}°E), {level_sel} hPa — {year_str} vs 1991-2021')
+    st.pyplot(fig)
+
+
 #%% [markdown]
 # Calculate wind speed and direction from u10 and v10
 def calculate_wind(uwnd,vwnd):
     speed = np.sqrt(uwnd**2 + vwnd**2)
     direction = (np.arctan2(vwnd, uwnd) * 180 / np.pi + 180) % 360
     return speed, direction
-#%% [markdown] 
-# Function to select the spatial plot box
-def select_box(lat,lon):
-    # Latitude and Longitude Box Selection
-    if ((lat_min > lat_max) or lon_min > lon_max):
-        st.text("ERROR: Minimum value greater than Maximum")    
-    return lat_min, lat_max, lon_min, lon_max
-#%% [markdown] 
+#%% [markdown]
 # Function to plot windrose Plot
 def plot_wind_rose(speed_pwr, direction_pwr,lat_l,lon_l):
-    fig_ws = plt.figure(figsize=(4, 4))
-    ax = WindroseAxes.from_ax()
+    fig_ws = plt.figure(figsize=(6, 6))
+    ax = WindroseAxes.from_ax(fig=fig_ws)
     ax.bar(direction_pwr, speed_pwr, normed=True, opening=0.8, edgecolor='white')
     ax.set_title('Latitude = '+str(lat_l)+' and Longitude = '+str(lon_l))
     ax.set_legend(title="Wind Speed (m/s)",loc='best')
-    #ax.text(0.7,-0.0,'Data Source: '+ds_temp.attrs['source'],
-    #        fontsize=6,transform=ax.transAxes)
-    st.pyplot()  
+    st.pyplot(fig_ws)
 #%% [markdown]
 # calculating figsize for spatial plots
 def calculate_x_y_size(lat_min, lat_max, lon_min, lon_max):
@@ -206,17 +397,15 @@ def calculate_x_y_size(lat_min, lat_max, lon_min, lon_max):
     x_ratio = lon_range/(lon_range+lat_range)
     y_ratio = lat_range/(lon_range+lat_range)
     
-    if x_ratio>y_ratio:
-        ratio_xy = np.round(x_ratio/y_ratio)
-        x_size = np.round(5)
-        y_size = np.round(7)
-    elif x_ratio==y_ratio:
-        x_size = np.round(7)
-        y_size = np.round(5)
+    if x_ratio > y_ratio:
+        x_size = 7
+        y_size = 5
+    elif x_ratio == y_ratio:
+        x_size = 6
+        y_size = 6
     else:
-        ratio_yx = np.round(y_ratio/x_ratio)
-        x_size = np.round(6)
-        y_size = np.round(5)
+        x_size = 5
+        y_size = 7
     return x_size, y_size
 #%% [markdown] 
 # Function to plot wind vector plot
@@ -232,19 +421,7 @@ def plot_wind_vectors(ds_u,ds_v, lat_min, lat_max, lon_min, lon_max, time_s, reg
                    speed_mean.lat.values.max(),#lat_max
                    ], 
                    crs=ccrs.PlateCarree())
-    India = load_shapefile()
-    shape_feature = ShapelyFeature(India.geometry,
-                                ccrs.PlateCarree(), edgecolor='black', 
-                                facecolor='none')
-    if (region != 'Global') and (region != 'India'):  
-        ax.add_feature(cfeature.BORDERS, linewidth=0.5)
-        ax.add_feature(cfeature.COASTLINE)
-    elif region == 'India':
-        #India.plot(facecolor='none',edgecolor='black',ax=ax)
-        ax.add_feature(shape_feature, linewidth=1.0)
-        ax.add_feature(cfeature.COASTLINE)
-    else:
-        ax.add_feature(cfeature.COASTLINE)
+    _add_map_features(ax, region)
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(ds_u.lon, ds_u.lat)
     speed_plot = ax.contourf(lons, lats, speed_mean, cmap=cmc.batlowW_r, extend='both')
@@ -312,23 +489,7 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
                     var_subset.lat.values.min(),#lat_min,
                     var_subset.lat.values.max()],#lat_max,], 
                     crs=ccrs.PlateCarree()) 
-    India = load_shapefile()
-    shape_feature = ShapelyFeature(India.geometry,
-                                ccrs.PlateCarree(), edgecolor='black', 
-                                facecolor='none')
-    if (region != 'Global') and (region != 'India') and (region != 'China'):  
-        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
-        ax3.add_feature(cfeature.COASTLINE)
-    elif (region == 'India'):
-        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
-        #India.plot(facecolor='none',edgecolor='black',ax=ax3)
-        ax3.add_feature(cfeature.COASTLINE)
-    elif (region == 'China'):
-        ax3.add_feature(shape_feature, linewidth=1.0, facecolor='none')
-        ax3.add_feature(cfeature.BORDERS, linewidth=0.5)
-        ax3.add_feature(cfeature.COASTLINE)
-    else:
-        ax3.add_feature(cfeature.COASTLINE)
+    _add_map_features(ax3, region)
     # Plot contour fill for wind speed
     lons, lats = np.meshgrid(var_subset.lon, var_subset.lat)
     level_in_feet = {"1000.0": 'Surface',
@@ -340,8 +501,8 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
     if var_subset.var_desc=='Air temperature':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))-273.15
         s_plot = ax3.contourf(lons,lats,plot_data,
-                              cmap=cmc.broc, 
-                              vmin=-40, vamx=40,
+                              cmap=cmc.broc,
+                              vmin=-40, vmax=40,
                               levels=np.linspace(-40,40,81),
                               extend='both')
         if x_size<y_size:
@@ -355,8 +516,8 @@ def plot_spatial2(var_subset,lat_min, lat_max, lon_min, lon_max,time_s, region):
     elif var_subset.var_desc=='Precipitation':
         plot_data = np.squeeze(var_subset.isel(time=time_s-1))
         s_plot = ax3.contourf(lons,lats,plot_data,
-                              cmap=cmc.batlowW_r, 
-                              vmin=0, vamx=30,
+                              cmap=cmc.batlowW_r,
+                              vmin=0, vmax=30,
                               levels=np.linspace(0,30,31),
                               extend='max')
         if x_size<y_size:
@@ -441,8 +602,8 @@ def plot_time_series(speed,direction):
     ax2.set_ylim([0,360])
     ax2.set_yticks(np.arange(0,361,45))
     ax2.set_yticklabels(['N','NE','E','SE','S','SW','W','NW','N'],color=color)
-    ax1.set_title('Latitude = '+str(speed_loc.lat.values)+
-                  ' and Longitude = '+str(speed_loc.lon.values)+
+    ax1.set_title('Latitude = '+str(speed.lat.values)+
+                  ' and Longitude = '+str(speed.lon.values)+
                   '  Level:'+str(speed.level.values)+
                   ' '+speed.level.GRIB_name)
     #ax1.text(0.7,-0.1,'Data Source: '+ds_temp.attrs['source'],
@@ -519,9 +680,14 @@ def plot_vertical_rh(var, mon): #var has dim's level and month
 #%% [markdown]
 # Function to covert 0 360 to -180 to 180
 def convert_180_180(ds_var):
-    ds_var.coords['lon'] = (ds_var.coords['lon'] + 179.0625) % 358.125 - 179.0625
+    if float(ds_var.lon.values.min()) >= 0:  # only convert 0-360 data; ERA5 is already -180/180
+        ds_var.coords['lon'] = (ds_var.coords['lon'] + 180) % 360 - 180
     ds_var2 = ds_var.sortby(ds_var.lon)
-    return (ds_var2)
+    # Drop any duplicate lon values that can arise near the ±180 boundary
+    _, unique_idx = np.unique(ds_var2.lon.values, return_index=True)
+    if len(unique_idx) < len(ds_var2.lon):
+        ds_var2 = ds_var2.isel(lon=sorted(unique_idx.tolist()))
+    return ds_var2
 #%% [markdown]
 # function to get the user input spatial box for plotting
 def user_input_box(lat,lon):
@@ -594,7 +760,6 @@ ds_temp = convert_180_180(load_temp_data()).sel(lat=slice(85,-85),lon=slice(-176
 ds_u = convert_180_180(load_uwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_v = convert_180_180(load_vwind_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 ds_pr = convert_180_180(load_pr_data()).sel(lat=slice(-85,85),lon=slice(-176,176))
-ds_pr.reindex(lat=list(reversed(ds_pr.lat)))
 ds_rh = convert_180_180(load_rh_data()).sel(lat=slice(85,-85),lon=slice(-176,176))
 lon = ds_temp['lon']
 lat = ds_temp['lat']
@@ -661,8 +826,17 @@ if var_type == 'Wind':
         ds_v_subset = ds_v['vwnd'].sel(lat=slice(lat_max, lat_min), 
                                        lon=slice(lon_min, lon_max),
                                        level=level_sel)
-        plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:], 
-                          lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
+        anomaly_plt = st.sidebar.checkbox('Show wind speed anomaly for selected region and month')
+        if anomaly_plt:
+            col1, col2 = st.columns(2)
+            with col1:
+                plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:], 
+                                  lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
+            with col2:
+                plot_wind_speed_anomaly(ds_u, ds_v, lat_min, lat_max, lon_min, lon_max, level_sel, time_sel, region_sel)
+        else:
+            plot_wind_vectors(ds_u_subset[time_sel-1,:,:], ds_v_subset[time_sel-1,:,:], 
+                              lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
 
     elif plot_type == "Time Series":
         st.header("Wind Speed Time Series")
@@ -671,7 +845,13 @@ if var_type == 'Wind':
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_u.level.values)
         speed_loc, direction_loc = calculate_wind(ds_u['uwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'),
                                   ds_v['vwnd'].sel(lat=lat_loc,lon=lon_loc,method='nearest'))
-        plot_time_series(speed_loc.sel(level=level_sel),direction_loc.sel(level=level_sel))
+        anomaly_plt = st.sidebar.checkbox('Show wind speed anomaly time series')
+        if anomaly_plt:
+            plot_wind_time_series_with_anomaly(speed_loc.sel(level=level_sel),
+                                               direction_loc.sel(level=level_sel),
+                                               lat_loc, lon_loc, level_sel)
+        else:
+            plot_time_series(speed_loc.sel(level=level_sel),direction_loc.sel(level=level_sel))
     elif plot_type == 'Vertical Profile': 
         st.header("Wind Speed Vertical Profile")
         st.write("Default location and month is shown here. Please select your location of interest using latitude and longitude, and desired month")
@@ -714,13 +894,17 @@ elif var_type == 'Temp_2m':
                       lon_min, lon_max,time_sel, region_sel)
     else:
         st.header("Time series plot")
-        st.write("Default location is shown here. Please select your location of interest using latitude and longitude") 
+        st.write("Default location is shown here. Please select your location of interest using latitude and longitude")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         ds_air = ds_temp['air']
         lat_idx = (np.abs(lat-lat_loc)).argmin()
         lon_idx = (np.abs(lon-lon_loc)).argmin()
         temp_loc = ds_air.isel(level=0,lat=lat_idx,lon=lon_idx)
-        plot_time_series2(temp_loc)
+        anomaly_plt = st.sidebar.checkbox('Show anomaly time series')
+        if anomaly_plt:
+            plot_time_series_with_anomaly(temp_loc, lat_loc, lon_loc)
+        else:
+            plot_time_series2(temp_loc)
 ##################################### Precipitation        
 elif var_type == 'Precipitation':
     st.markdown('''Monthly mean rainfall can be viewed as:  
@@ -740,13 +924,25 @@ elif var_type == 'Precipitation':
         #[lat_min, lat_max, lon_min, lon_max] = user_input_box(lat,lon)        
         ds_pr_subset = ds_pr['precip'].sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
-        plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
+        anomaly_plt = st.sidebar.checkbox('Check anomaly for the selected month')
+        if anomaly_plt:
+            col1, col2 = st.columns(2)
+            with col1:
+                plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
+            with col2:
+                anomaly_plotting(ds_pr_subset, time_sel, region_sel)
+        else:
+            plot_spatial2(ds_pr_subset, lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
     else:
         st.header("Time series plot")
-        st.write("Default location is shown here. Please select your location of interest using latitude and longitude") 
+        st.write("Default location is shown here. Please select your location of interest using latitude and longitude")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         pr_loc = ds_pr['precip'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
-        plot_time_series2(pr_loc)
+        anomaly_plt = st.sidebar.checkbox('Show anomaly time series')
+        if anomaly_plt:
+            plot_time_series_with_anomaly(pr_loc, lat_loc, lon_loc)
+        else:
+            plot_time_series2(pr_loc)
 ######################################## Relative Humidity
 else: #Relative Humidity
     st.markdown('''Relative Humidity can be viewed as:  
@@ -770,15 +966,26 @@ else: #Relative Humidity
         ds_rh_subset = ds_rh['rhum'].sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
         time_sel = st.sidebar.selectbox("Select Month", np.arange(1,13))
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
-
-        plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
+        anomaly_plt = st.sidebar.checkbox('Check anomaly for the selected month')
+        if anomaly_plt:
+            col1, col2 = st.columns(2)
+            with col1:
+                plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
+            with col2:
+                anomaly_plotting(ds_rh_subset.sel(level=level_sel), time_sel, region_sel)
+        else:
+            plot_spatial2(ds_rh_subset.sel(level=level_sel), lat_min, lat_max, lon_min, lon_max,time_sel, region_sel)
     elif plot_type == 'Time Series':
         st.header("Time series plot")
-        st.write("Default location and pressure level is shown here. Please select your location of interest using latitude and longitude, and the pressure level") 
+        st.write("Default location and pressure level is shown here. Please select your location of interest using latitude and longitude, and the pressure level")
         lat_loc, lon_loc = user_input_loc(lat,lon)
         rh_loc = ds_rh['rhum'].sel(lat=lat_loc,lon=lon_loc,method='nearest')
         level_sel = st.sidebar.selectbox("Select Level (hPa)", ds_rh.level.values)
-        plot_time_series2(rh_loc.sel(level=level_sel))
+        anomaly_plt = st.sidebar.checkbox('Show anomaly time series')
+        if anomaly_plt:
+            plot_time_series_with_anomaly(rh_loc.sel(level=level_sel), lat_loc, lon_loc)
+        else:
+            plot_time_series2(rh_loc.sel(level=level_sel))
     elif plot_type == 'Vertical Profile':
         st.header("Relative Humidity Vertical Profile")
         st.write("Default location and month is shown here. Please select your location of interest using latitude and longitude, and desired month")

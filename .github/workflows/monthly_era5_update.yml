@@ -1,0 +1,54 @@
+name: Monthly ERA5 Data Update
+
+on:
+  schedule:
+    # Run at 06:00 UTC on the 5th of every month
+    - cron: '0 6 5 * *'
+  workflow_dispatch:  # allow manual trigger from the Actions tab
+
+jobs:
+  update-era5:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to commit and push data files
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install cdsapi xarray netCDF4 numpy
+
+      - name: Configure CDS API credentials
+        env:
+          CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
+          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
+        run: |
+          mkdir -p ~/.config/cdsapi
+          cat > ~/.cdsapirc <<EOF
+          url: ${CDSAPI_URL}
+          key: ${CDSAPI_KEY}
+          EOF
+
+      - name: Fetch latest ERA5 data
+        env:
+          CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
+          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
+        run: python scripts/fetch_era5.py
+
+      - name: Commit updated ERA5 data files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/era5_*.nc
+          # Only commit if there are changes
+          git diff --cached --quiet || git commit -m "chore: update ERA5 data $(date +'%Y-%m')"
+
+      - name: Push changes
+        run: git push

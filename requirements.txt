@@ -6,3 +6,7 @@ cartopy
 cmcrameri
 streamlit-option-menu
 geopandas
+fiona
+geovista
+iris
+cdsapi
