@@ -21,7 +21,10 @@ import cdsapi
 import numpy as np
 import xarray as xr
 
-PRESSURE_LEVELS = ['1000', '925', '850', '700', '500', '400', '300', '200', '100']
+# 1° grid keeps files well under GitHub's 100 MB limit while still being
+# finer than the 2.5° NCEP climatology used for anomaly differencing.
+GRID = '1.0/1.0'
+PRESSURE_LEVELS = ['1000', '925', '850', '700', '500', '300', '200', '100']
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
 
 
@@ -63,6 +66,7 @@ def fetch_temperature(client, start_year, end_year):
             'year':         years,
             'month':        months,
             'time':         '00:00',
+            'grid':         GRID,
             'format':       'netcdf',
         },
         tmp,
@@ -94,6 +98,7 @@ def fetch_wind(client, start_year, end_year):
             'year':           years,
             'month':          months,
             'time':           '00:00',
+            'grid':           GRID,
             'format':         'netcdf',
         },
         tmp,
@@ -120,6 +125,38 @@ def fetch_wind(client, start_year, end_year):
     return out
 
 
+def fetch_precipitation(client, start_year, end_year):
+    years, months = _all_months(start_year, end_year)
+    tmp = '/tmp/era5_tmp_precip.nc'
+    client.retrieve(
+        'reanalysis-era5-single-levels-monthly-means',
+        {
+            'product_type': 'monthly_averaged_reanalysis',
+            'variable':     'total_precipitation',
+            'year':         years,
+            'month':        months,
+            'time':         '00:00',
+            'grid':         GRID,
+            'format':       'netcdf',
+        },
+        tmp,
+    )
+
+    ds = xr.open_dataset(tmp)
+    ds = ds.rename({'latitude': 'lat', 'longitude': 'lon'})
+    # ERA5 monthly mean tp is in m/day; convert to mm/day to match NCEP
+    if 'tp' in ds:
+        ds = ds.rename({'tp': 'precip'})
+    ds['precip'] = ds['precip'] * 1000.0
+    ds['precip'].attrs['long_name'] = 'Total Precipitation'
+    ds['precip'].attrs['units']     = 'mm/day'
+
+    out = os.path.join(DATA_DIR, f'era5_{start_year}_{end_year}_precip.nc')
+    _write(ds, out)
+    _remove_stale('precip', out)
+    return out
+
+
 def fetch_rhum(client, start_year, end_year):
     years, months = _all_months(start_year, end_year)
     tmp = '/tmp/era5_tmp_rhum.nc'
@@ -132,6 +169,7 @@ def fetch_rhum(client, start_year, end_year):
             'year':           years,
             'month':          months,
             'time':           '00:00',
+            'grid':           GRID,
             'format':         'netcdf',
         },
         tmp,
@@ -164,6 +202,7 @@ def main():
     fetch_temperature(client, start_year, end_year)
     fetch_wind(client, start_year, end_year)
     fetch_rhum(client, start_year, end_year)
+    fetch_precipitation(client, start_year, end_year)
 
     print("All ERA5 variables downloaded and saved.")
 
